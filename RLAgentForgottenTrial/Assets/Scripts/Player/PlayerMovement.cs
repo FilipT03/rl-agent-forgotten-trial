@@ -9,14 +9,14 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    CharacterController characterController;
+    public CharacterController characterController;
     //Animator animator;
     AudioSource audioSource;
+    Player player;
 
     [Header("General Variables")]
     [SerializeField] Transform groundPoint;
     [SerializeField] float normalSpeed = 10f;
-    //[SerializeField] float sprintSpeed = 20f;
     [SerializeField] float gravity = 9.81f, lookSpeed = 3f, verticalRotationLimit = 330f;
 
     [Header("Jumping")]
@@ -39,39 +39,31 @@ public class PlayerMovement : MonoBehaviour
     {
         characterController = GetComponent<CharacterController>();
         audioSource = GetComponent<AudioSource>();
+        player = GetComponent<Player>();
 
         //animator = GetComponent<Animator>();
     }
     private void Start()
     {
-        normalCamera = Player.instance.normalCamera;
-        normalCameraPoint = Player.instance.normalCameraPoint;
-        freeCameraPoint = Player.instance.freeCameraPoint;
+        normalCamera = player.normalCamera;
+        normalCameraPoint = player.normalCameraPoint;
+        freeCameraPoint = player.freeCameraPoint;
         Cursor.lockState = CursorLockMode.Locked; // TODO: if not training
         Cursor.visible = false;
     }
 
     private void FixedUpdate()
     {
-        //print(animator.GetInteger("jumpState"));
         sinceLastAirJumpPress += Time.fixedDeltaTime;
         sinceJump += Time.fixedDeltaTime;
         sinceGround += Time.fixedDeltaTime;
         sinceMovementFixes += Time.fixedDeltaTime;
         currentSpeed = normalSpeed;
-        //currentSpeed = isSprinting ? sprintSpeed : normalSpeed;
         
-
-        //if (state != MovementState.diving)  Neki drugi state??
-        //{
-            /// Unmodified horizontal movement
-            //else {
-                horizontal = transform.forward * movement.y + transform.right * movement.x;
-                /// Normalize the horizontal speed so pressing both buttons isn't faster
-                if (horizontal.magnitude > 1)
-                    horizontal = horizontal.normalized;
-            //}
-        //}
+        horizontal = transform.forward * movement.y + transform.right * movement.x;
+        /// Normalize the horizontal speed so pressing both buttons isn't faster
+        if (horizontal.magnitude > 1)
+            horizontal = horizontal.normalized;
 
         /// Jumping
         if (characterController.isGrounded)
@@ -91,8 +83,6 @@ public class PlayerMovement : MonoBehaviour
 
         /// Apply gravity movement
         yVelocity -= gravity * Time.fixedDeltaTime;
-
-        //lastVelocity = characterController.velocity;
 
         Vector3 immediateVelocity = new Vector3(0, FixStairs(yVelocity), 0);
 
@@ -189,9 +179,9 @@ public class PlayerMovement : MonoBehaviour
     #endregion
 
     #region InputActions
-    public void OnMove(InputValue value) => movement = value.Get<Vector2>();
+    public void OnMove(Vector2 value) => movement = value;
 
-    public void OnJump(InputValue value)
+    public void OnJump()
     {
         if (characterController.isGrounded || (sinceGround < fallingTimeWindowsForJump && sinceJump > fallingTimeWindowsForJump * 1.5f))
         {
@@ -202,10 +192,10 @@ public class PlayerMovement : MonoBehaviour
     }
 
     Vector2 rotation;
-    public void OnLook(InputValue value)
+    public void OnLook(Vector2 value)
     {
-        rotation.y += value.Get<Vector2>().x;
-        rotation.x -= value.Get<Vector2>().y;
+        rotation.y += value.x;
+        rotation.x -= value.y;
         rotation.x = Mathf.Clamp(rotation.x, -verticalRotationLimit, verticalRotationLimit);
         if (!inFreecam)
         {
@@ -215,17 +205,14 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             freeCameraPoint.eulerAngles = new Vector2(rotation.x, rotation.y) * lookSpeed;
-            //freeCameraPoint.localRotation = Quaternion.Euler(rotation.x * lookSpeed, 0, 0);
         }
     }
-
-    public void OnSprint(InputValue value) => isSprinting = value.Get<float>() > 0.5f;
 
     public void OnToggleFreecam(InputValue value)
     {
         inFreecam = !inFreecam;
-        Player.instance.freeCameraPoint.gameObject.SetActive(!Player.instance.freeCameraPoint.gameObject.activeSelf);
-        Player.instance.normalCamera.gameObject.SetActive(!Player.instance.normalCamera.gameObject.activeSelf);
+        player.freeCameraPoint.gameObject.SetActive(!player.freeCameraPoint.gameObject.activeSelf);
+        player.normalCamera.gameObject.SetActive(!player.normalCamera.gameObject.activeSelf);
     }
     #endregion
 
