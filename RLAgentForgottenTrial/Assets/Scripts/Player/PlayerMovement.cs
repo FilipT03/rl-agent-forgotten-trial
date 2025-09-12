@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -186,19 +187,22 @@ public class PlayerMovement : MonoBehaviour
     }
 
     Vector2 rotation;
-    public void OnLook(Vector2 value)
+    public void OnLook(Vector2 value, float speedMultiplier = 1)
     {
+        value *= lookSpeed * speedMultiplier;
         rotation.y += value.x;
         rotation.x -= value.y;
         rotation.x = Mathf.Clamp(rotation.x, -verticalRotationLimit, verticalRotationLimit);
         if (!inFreecam)
         {
-            transform.eulerAngles = new Vector2(0, rotation.y) * lookSpeed;
-            player.head.transform.localRotation = Quaternion.Euler(rotation.x * lookSpeed, 0, 0);
+            transform.rotation = Quaternion.Euler(0f, rotation.y, 0f);
+            player.head.transform.localRotation = Quaternion.Euler(rotation.x, 0f, 0f);
+            //transform.eulerAngles = new Vector2(0, rotation.y) * lookSpeed * speedMultiplier;
+            //player.head.transform.localRotation = Quaternion.Euler(rotation.x * lookSpeed * speedMultiplier, 0, 0);
         }
         else
         {
-            player.freeCameraParent.eulerAngles = new Vector2(rotation.x, rotation.y) * lookSpeed;
+            player.freeCameraParent.rotation = Quaternion.Euler(rotation.x, rotation.y, 0f);
         }
     }
 

@@ -8,6 +8,8 @@ public class GenerateTrainings : MonoBehaviour
 
     private void Awake()
     {
+        Camera mainCamera = trainingObject.GetComponentInChildren<Camera>();
+        mainCamera.gameObject.SetActive(false);
         for (int i = 0; i < a; i++)
         {
             for (int j = 0; j < b; j++)
@@ -16,5 +18,6 @@ public class GenerateTrainings : MonoBehaviour
                 Instantiate(trainingObject, Vector3.forward * i * size + Vector3.right * j * size, Quaternion.identity);
             }
         }
+        mainCamera.gameObject.SetActive(true);
     }
 }

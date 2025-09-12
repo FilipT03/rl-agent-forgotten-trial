@@ -9,18 +9,25 @@ using Random = UnityEngine.Random;
 
 public class PlayerAgent : Agent
 {
-    public bool useVecObs;
-    [SerializeField] private Transform goal;
+    [Header("References")]
     [SerializeField] private PlayerMovement playerMovement;
-    [SerializeField] private Transform startPosition;
-    [SerializeField] private Vector3 minStart, maxStart;
     [SerializeField] private Renderer floorRender;
+    [SerializeField] private Transform goal;
 
+    [Header("Options")]
     [SerializeField] private bool heuristic = false;
+    [SerializeField] private float heuristicLookSensitivity = 0.0005f;
+
+    [Header("Boundaries")]
+    [SerializeField] private float killY = -10f;
+    [SerializeField] private Vector3 minStart, maxStart;
+
+    [Header("Rewards")]
+    [SerializeField] private float winReward;
+    [SerializeField] private float dieReward, existenceReward;
+
     private Vector2 horizontal, look;
     private bool jumped;
-
-    [SerializeField] float killY = -10f;
 
     public override void Initialize()
     {
@@ -30,29 +37,29 @@ public class PlayerAgent : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        if (useVecObs)
-        {
-            sensor.AddObservation(playerMovement.transform.rotation.z);
-            sensor.AddObservation(playerMovement.transform.rotation.x);
-            sensor.AddObservation(playerMovement.transform.position - goal.position);
-        }
     }
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
         float actionZ = Mathf.Clamp(actionBuffers.ContinuousActions[0], -1f, 1f);
         float actionX = Mathf.Clamp(actionBuffers.ContinuousActions[1], -1f, 1f);
+        float lookX = Mathf.Clamp(actionBuffers.ContinuousActions[2], -1f, 1f);
+        float lookY = Mathf.Clamp(actionBuffers.ContinuousActions[3], -1f, 1f);
 
-        playerMovement.OnMove(new Vector2(actionZ, actionX));
+        lookX = ConvertExponent(lookX, 3f);
+        lookY = ConvertExponent(lookY, 3f);
+
+        playerMovement.OnMove(new Vector2(actionX, actionZ));
+        playerMovement.OnLook(new Vector2(lookX, lookY));
 
         if (playerMovement.transform.position.y <= killY)
         {
-            SetReward(-10f);
+            SetReward(dieReward);
             floorRender.material.color = Color.softRed;
             EndEpisode();
         }
         else
-            SetReward(-0.01f);
+            SetReward(existenceReward);
     }
 
     public override void OnEpisodeBegin()
@@ -77,6 +84,9 @@ public class PlayerAgent : Agent
         var continuousActionsOut = actionsOut.ContinuousActions;
         continuousActionsOut[0] = horizontal.y; // Z axis
         continuousActionsOut[1] = horizontal.x; // X axis
+        continuousActionsOut[2] = look.x * heuristicLookSensitivity;
+        continuousActionsOut[3] = look.y * heuristicLookSensitivity;
+        continuousActionsOut[2] = look.x > 0 ? 0.25f : 0f;
     }
 
     public void OnMove(InputValue value)
@@ -109,8 +119,17 @@ public class PlayerAgent : Agent
 
     public void Win()
     {
-        SetReward(100f);
+        SetReward(winReward);
         floorRender.material.color = Color.softGreen;
         EndEpisode();
+    }
+
+    float ConvertSqrt(float x)
+    {
+        return Mathf.Sign(x) * Mathf.Pow(Mathf.Abs(x), 0.5f);
+    }
+    float ConvertExponent(float x, float exp)
+    {
+        return Mathf.Sign(x) * Mathf.Pow(Mathf.Abs(x), exp);
     }
 }
