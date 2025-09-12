@@ -11,7 +11,7 @@ public class PlayerAgent : Agent
 {
     [Header("References")]
     [SerializeField] private PlayerMovement playerMovement;
-    [SerializeField] private Renderer floorRender;
+    [SerializeField] private Terrain terrain;
     [SerializeField] private Transform goal;
 
     [Header("Options")]
@@ -24,7 +24,7 @@ public class PlayerAgent : Agent
 
     [Header("Rewards")]
     [SerializeField] private float winReward;
-    [SerializeField] private float dieReward, existenceReward;
+    [SerializeField] private float dieReward, existenceReward, timeoutReward;
 
     private Vector2 horizontal, look;
     private bool jumped;
@@ -46,8 +46,11 @@ public class PlayerAgent : Agent
         float lookX = Mathf.Clamp(actionBuffers.ContinuousActions[2], -1f, 1f);
         float lookY = Mathf.Clamp(actionBuffers.ContinuousActions[3], -1f, 1f);
 
-        lookX = ConvertExponent(lookX, 3f);
-        lookY = ConvertExponent(lookY, 3f);
+        if (!heuristic)
+        {
+            lookX = ConvertExponent(lookX, 3f);
+            lookY = ConvertExponent(lookY, 3f);
+        }
 
         playerMovement.OnMove(new Vector2(actionX, actionZ));
         playerMovement.OnLook(new Vector2(lookX, lookY));
@@ -55,9 +58,15 @@ public class PlayerAgent : Agent
         if (playerMovement.transform.position.y <= killY)
         {
             SetReward(dieReward);
-            floorRender.material.color = Color.softRed;
+            terrain.materialTemplate.color = Color.softRed;
             EndEpisode();
         }
+        else if (StepCount == MaxStep - 1)
+        {
+            SetReward(timeoutReward);
+            terrain.materialTemplate.color = Color.softRed;
+            EndEpisode();
+        }    
         else
             SetReward(existenceReward);
     }
@@ -74,6 +83,9 @@ public class PlayerAgent : Agent
             Random.Range(minStart.y, maxStart.y),
             Random.Range(minStart.z, maxStart.z));
 
+        start.y = terrain.SampleHeight(start) + 0.5f;
+        goalStart.y = terrain.SampleHeight(goalStart) + 0.5f;
+
         playerMovement.MoveTo(start);
 
         goal.transform.position = goalStart;
@@ -86,9 +98,8 @@ public class PlayerAgent : Agent
         continuousActionsOut[1] = horizontal.x; // X axis
         continuousActionsOut[2] = look.x * heuristicLookSensitivity;
         continuousActionsOut[3] = look.y * heuristicLookSensitivity;
-        continuousActionsOut[2] = look.x > 0 ? 0.25f : 0f;
     }
-
+     
     public void OnMove(InputValue value)
     {
         if (!heuristic) return;
@@ -120,7 +131,7 @@ public class PlayerAgent : Agent
     public void Win()
     {
         SetReward(winReward);
-        floorRender.material.color = Color.softGreen;
+        terrain.materialTemplate.color = Color.softGreen;
         EndEpisode();
     }
 
