@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public CharacterController characterController;
+    CharacterController characterController;
     //Animator animator;
     AudioSource audioSource;
     Player player;
@@ -27,9 +27,6 @@ public class PlayerMovement : MonoBehaviour
     Vector3 horizontal, lastVelocity;
     float yVelocity, currentSpeed, sinceLastAirJumpPress = 5f, sinceMovementFixes;
     float sinceGround, sinceJump;
-    Camera normalCamera;
-    Transform normalCameraPoint;
-    Transform freeCameraPoint;
     bool isSprinting;
     bool inFreecam, inJump;
 
@@ -45,9 +42,6 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Start()
     {
-        normalCamera = player.normalCamera;
-        normalCameraPoint = player.normalCameraPoint;
-        freeCameraPoint = player.freeCameraPoint;
         Cursor.lockState = CursorLockMode.Locked; // TODO: if not training
         Cursor.visible = false;
     }
@@ -200,19 +194,19 @@ public class PlayerMovement : MonoBehaviour
         if (!inFreecam)
         {
             transform.eulerAngles = new Vector2(0, rotation.y) * lookSpeed;
-            normalCamera.transform.localRotation = Quaternion.Euler(rotation.x * lookSpeed, 0, 0);
+            player.head.transform.localRotation = Quaternion.Euler(rotation.x * lookSpeed, 0, 0);
         }
         else
         {
-            freeCameraPoint.eulerAngles = new Vector2(rotation.x, rotation.y) * lookSpeed;
+            player.freeCameraParent.eulerAngles = new Vector2(rotation.x, rotation.y) * lookSpeed;
         }
     }
 
     public void OnToggleFreecam(InputValue value)
     {
         inFreecam = !inFreecam;
-        player.freeCameraPoint.gameObject.SetActive(!player.freeCameraPoint.gameObject.activeSelf);
-        player.normalCamera.gameObject.SetActive(!player.normalCamera.gameObject.activeSelf);
+        player.freeCameraParent.gameObject.SetActive(inFreecam);
+        player.normalCameraParent.gameObject.SetActive(!inFreecam);
     }
     #endregion
 
@@ -223,5 +217,12 @@ public class PlayerMovement : MonoBehaviour
         inJump = true;
         SoundManager.PlaySound(audioSource, SoundManager.Sound.playerJump);
         //animator.SetInteger("jumpState", 1);
+    }
+
+    public void MoveTo(Vector3 position)
+    {
+        characterController.enabled = false;
+        transform.position = position;
+        characterController.enabled = true;
     }
 }
