@@ -39,12 +39,6 @@ public class EnemyAttackState : IEnemyState
         alreadyAttacked = true;
         Debug.Log("Enemy Attack!");
 
-        enemy.Invoke(nameof(ResetAttack), enemy.timeBetweenAttacks);
+        enemy.StartAttackCooldown(enemy.timeBetweenAttacks, () => alreadyAttacked = false);
     }
-
-    private void ResetAttack()
-    {
-        alreadyAttacked = false;
-    }
-
 }

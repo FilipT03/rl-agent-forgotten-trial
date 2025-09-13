@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
@@ -13,6 +14,7 @@ public class PlayerAgent : Agent
     [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private Terrain terrain;
     [SerializeField] private Transform goal;
+    [SerializeField] private EnemyManager enemyManager;
 
     [Header("Options")]
     [SerializeField] private bool heuristic = false;
@@ -25,6 +27,8 @@ public class PlayerAgent : Agent
     [Header("Rewards")]
     [SerializeField] private float winReward;
     [SerializeField] private float dieReward, existenceReward, timeoutReward;
+    [SerializeField] private float penaltyNearEnemy = -0.005f;
+    [SerializeField] private float dangerDistance = 3f;
 
     private Vector2 horizontal, look;
     private bool jumped;
@@ -37,38 +41,67 @@ public class PlayerAgent : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
+        if (sensor == null) return;
+        Vector3 agentPos = Vector3.zero;
+
+        if (transform != null)
+        {
+            agentPos = transform.position;
+            sensor.AddObservation(agentPos);
+        } else
+        {
+            sensor.AddObservation(Vector3.zero);
+        }
+
+        if (goal != null && agentPos != Vector3.zero)
+        {
+            Vector3 goalPos = goal.position;
+            sensor.AddObservation(goalPos - agentPos);
+        }
+        else
+        {
+            sensor.AddObservation(Vector3.zero);
+        }
+
+        if (enemyManager != null && enemyManager.GetEnemies().Count > 0)
+        {
+            Transform nearestEnemy = GetNearestEnemy(agentPos);
+            Vector3 enemyOffset = nearestEnemy.position - agentPos;
+            float enemyDistance = enemyOffset.magnitude;
+
+            sensor.AddObservation(enemyOffset);
+            sensor.AddObservation(enemyDistance);
+        }
+        else
+        {
+            sensor.AddObservation(Vector3.zero);
+            sensor.AddObservation(0f);
+        }
     }
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
-        float actionZ = Mathf.Clamp(actionBuffers.ContinuousActions[0], -1f, 1f);
-        float actionX = Mathf.Clamp(actionBuffers.ContinuousActions[1], -1f, 1f);
-        float lookX = Mathf.Clamp(actionBuffers.ContinuousActions[2], -1f, 1f);
-        float lookY = Mathf.Clamp(actionBuffers.ContinuousActions[3], -1f, 1f);
+        float moveX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerAction.moveX], -1f, 1f);
+        float moveZ = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerAction.moveZ], -1f, 1f);
+        float lookX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerAction.lookX], -1f, 1f);
+        float lookY = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerAction.lookZ], -1f, 1f);
 
-        if (!heuristic)
-        {
-            lookX = ConvertExponent(lookX, 3f);
-            lookY = ConvertExponent(lookY, 3f);
-        }
+        Vector3 playerPosition = playerMovement.transform.position;
 
-        playerMovement.OnMove(new Vector2(actionX, actionZ));
+        playerMovement.OnMove(new Vector2(moveX, moveZ));
         playerMovement.OnLook(new Vector2(lookX, lookY));
 
-        if (playerMovement.transform.position.y <= killY)
-        {
-            SetReward(dieReward);
-            terrain.materialTemplate.color = Color.softRed;
-            EndEpisode();
-        }
+        Transform nearest = GetNearestEnemy(playerPosition);
+        if (Vector3.Distance(nearest.position, playerPosition) < dangerDistance)
+            AddReward(penaltyNearEnemy);
+            
+        if (playerPosition.y < killY)
+            OnLose(dieReward);
         else if (StepCount == MaxStep - 1)
-        {
-            SetReward(timeoutReward);
-            terrain.materialTemplate.color = Color.softRed;
-            EndEpisode();
-        }    
+            OnLose(timeoutReward);
         else
-            SetReward(existenceReward);
+            AddReward(existenceReward);
+
     }
 
     public override void OnEpisodeBegin()
@@ -82,12 +115,11 @@ public class PlayerAgent : Agent
             Random.Range(minStart.x, maxStart.x),
             Random.Range(minStart.y, maxStart.y),
             Random.Range(minStart.z, maxStart.z));
-
+        
         start.y = terrain.SampleHeight(start) + 0.5f;
         goalStart.y = terrain.SampleHeight(goalStart) + 0.5f;
 
         playerMovement.MoveTo(start);
-
         goal.transform.position = goalStart;
     }
 
@@ -128,11 +160,25 @@ public class PlayerAgent : Agent
         Gizmos.DrawWireCube((minStart + maxStart) / 2, maxStart - minStart);
     }
 
-    public void Win()
+    public void OnWin()
     {
         SetReward(winReward);
         terrain.materialTemplate.color = Color.softGreen;
         EndEpisode();
+    }
+
+    public void OnLose(float reward)
+    {
+        SetReward(reward);
+        terrain.materialTemplate.color = Color.softRed;
+        EndEpisode();
+    }
+ 
+    private Transform GetNearestEnemy(Vector3 agentPos)
+    {
+        return enemyManager.GetEnemies()
+            .OrderBy(e => Vector3.Distance(e.position, agentPos))
+            .First();
     }
 
     float ConvertSqrt(float x)

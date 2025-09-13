@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections;
+using UnityEngine;
 using UnityEngine.AI;
 
 public class EnemyAI: MonoBehaviour
@@ -60,6 +62,17 @@ public class EnemyAI: MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, attackRange);
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, sightRange);
+    }
+
+    public void StartAttackCooldown(float delay, Action onCooldownComplete)
+    {
+        StartCoroutine(AttackCooldownCoroutine(delay, onCooldownComplete));
+    }
+
+    private IEnumerator AttackCooldownCoroutine(float delay, Action onCooldownComplete)
+    {
+        yield return new WaitForSeconds(delay);
+        onCooldownComplete?.Invoke();
     }
 
     public bool IsPlayerInSight()

@@ -7,7 +7,7 @@ public class PlayerTriggers : MonoBehaviour
     {
         if (other.CompareTag("Goal"))
         {
-            agent.Win();
+            agent.OnWin();
         }
     }
 }
