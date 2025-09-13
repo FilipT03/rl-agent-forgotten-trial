@@ -42,18 +42,11 @@ public class PlayerAgent : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
         if (sensor == null) return;
-        Vector3 agentPos = Vector3.zero;
+        
+        Vector3 agentPos = playerMovement.transform.position;
+        sensor.AddObservation(agentPos);
 
-        if (transform != null)
-        {
-            agentPos = transform.position;
-            sensor.AddObservation(agentPos);
-        } else
-        {
-            sensor.AddObservation(Vector3.zero);
-        }
-
-        if (goal != null && agentPos != Vector3.zero)
+        if (goal != null)
         {
             Vector3 goalPos = goal.position;
             sensor.AddObservation(goalPos - agentPos);
@@ -87,6 +80,12 @@ public class PlayerAgent : Agent
         float lookY = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerAction.lookZ], -1f, 1f);
 
         Vector3 playerPosition = playerMovement.transform.position;
+
+        if(!heuristic)
+        {
+            lookX = ConvertExponent(lookX, 3f);
+            lookY = ConvertExponent(lookY, 3f);
+        }
 
         playerMovement.OnMove(new Vector2(moveX, moveZ));
         playerMovement.OnLook(new Vector2(lookX, lookY));
@@ -183,8 +182,9 @@ public class PlayerAgent : Agent
 
     float ConvertSqrt(float x)
     {
-        return Mathf.Sign(x) * Mathf.Pow(Mathf.Abs(x), 0.5f);
+        return ConvertExponent(x, 0.5f);
     }
+
     float ConvertExponent(float x, float exp)
     {
         return Mathf.Sign(x) * Mathf.Pow(Mathf.Abs(x), exp);
