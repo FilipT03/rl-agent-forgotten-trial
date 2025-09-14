@@ -38,7 +38,7 @@ public class EnemyAI: MonoBehaviour
 
     private void Start()
     {
-        player = Player.instance.transform;
+        player = GetComponentInParent<TrainingReferences>().player.transform;
         StateMachine = new EnemyStateMachine(this);
         StateMachine.ChangeState(new EnemyPatrolState());
     }
