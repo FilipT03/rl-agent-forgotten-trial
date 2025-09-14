@@ -38,6 +38,7 @@ public class EnemyAttackState : IEnemyState
     {
         alreadyAttacked = true;
         Debug.Log("Enemy Attack!");
+        enemy.player.GetComponent<Player>().TakeDamage();
 
         enemy.StartAttackCooldown(enemy.timeBetweenAttacks, () => alreadyAttacked = false);
     }

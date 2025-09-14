@@ -19,6 +19,7 @@ public class PlayerAgent : Agent
     [Header("Options")]
     [SerializeField] private bool heuristic = false;
     [SerializeField] private float heuristicLookSensitivity = 0.0005f;
+    [SerializeField] private float meaningfulDistance = 15f;
 
     [Header("Boundaries")]
     [SerializeField] private float killY = -10f;
@@ -26,7 +27,7 @@ public class PlayerAgent : Agent
 
     [Header("Rewards")]
     [SerializeField] private float winReward;
-    [SerializeField] private float dieReward, existenceReward, timeoutReward;
+    [SerializeField] private float dieReward, existenceReward, timeoutReward, damageReward = -0.05f;
     [SerializeField] private float penaltyNearEnemy = -0.005f;
     [SerializeField] private float dangerDistance = 3f;
 
@@ -39,37 +40,24 @@ public class PlayerAgent : Agent
         maxStart += transform.position;
     }
 
+    // goalAngle, goalDistance, enemyExistsFlag, closestEnemyAngle, closestEnemyDistance  =  5 
     public override void CollectObservations(VectorSensor sensor)
     {
         if (sensor == null) return;
-        
-        Vector3 agentPos = playerMovement.transform.position;
-        sensor.AddObservation(agentPos);
 
-        if (goal != null)
-        {
-            Vector3 goalPos = goal.position;
-            sensor.AddObservation(goalPos - agentPos);
-        }
-        else
-        {
-            sensor.AddObservation(Vector3.zero);
-        }
+        Transform player = playerMovement.transform;
 
+        sensor.AddObservation(AngleBetween(player, goal, 0f));    // [-1,1]
+        sensor.AddObservation(DistanceBetween(player, goal, 0f)); // [ 0,1]
+
+
+        Transform nearestEnemy = null;
         if (enemyManager != null && enemyManager.GetEnemies().Count > 0)
-        {
-            Transform nearestEnemy = GetNearestEnemy(agentPos);
-            Vector3 enemyOffset = nearestEnemy.position - agentPos;
-            float enemyDistance = enemyOffset.magnitude;
+            nearestEnemy = GetNearestEnemy(player.position);
 
-            sensor.AddObservation(enemyOffset);
-            sensor.AddObservation(enemyDistance);
-        }
-        else
-        {
-            sensor.AddObservation(Vector3.zero);
-            sensor.AddObservation(0f);
-        }
+        sensor.AddObservation(nearestEnemy == null ? 0 : 1); // does enemy exist
+        sensor.AddObservation(AngleBetween(player, nearestEnemy, 0f));    // [-1,1]
+        sensor.AddObservation(DistanceBetween(player, nearestEnemy, -1f)); // [0,1] or -1
     }
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
@@ -81,7 +69,7 @@ public class PlayerAgent : Agent
 
         Vector3 playerPosition = playerMovement.transform.position;
 
-        if(!heuristic)
+        if (!heuristic)
         {
             lookX = ConvertExponent(lookX, 3f);
             lookY = ConvertExponent(lookY, 3f);
@@ -93,7 +81,7 @@ public class PlayerAgent : Agent
         Transform nearest = GetNearestEnemy(playerPosition);
         if (Vector3.Distance(nearest.position, playerPosition) < dangerDistance)
             AddReward(penaltyNearEnemy);
-            
+
         if (playerPosition.y < killY)
             OnLose(dieReward);
         else if (StepCount == MaxStep - 1)
@@ -114,7 +102,7 @@ public class PlayerAgent : Agent
             Random.Range(minStart.x, maxStart.x),
             Random.Range(minStart.y, maxStart.y),
             Random.Range(minStart.z, maxStart.z));
-        
+
         start.y = terrain.SampleHeight(start) + 0.5f;
         goalStart.y = terrain.SampleHeight(goalStart) + 0.5f;
 
@@ -130,7 +118,7 @@ public class PlayerAgent : Agent
         continuousActionsOut[2] = look.x * heuristicLookSensitivity;
         continuousActionsOut[3] = look.y * heuristicLookSensitivity;
     }
-     
+
     public void OnMove(InputValue value)
     {
         if (!heuristic) return;
@@ -149,7 +137,7 @@ public class PlayerAgent : Agent
         look = value.Get<Vector2>();
     }
 
-    public void OnDrawGizmos()
+    public void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;
         Vector3 position = new Vector3(playerMovement.transform.position.x, killY, playerMovement.transform.position.z);
@@ -172,7 +160,12 @@ public class PlayerAgent : Agent
         terrain.materialTemplate.color = Color.softRed;
         EndEpisode();
     }
- 
+
+    public void OnTakeDamage()
+    {
+        AddReward(damageReward);
+    }
+
     private Transform GetNearestEnemy(Vector3 agentPos)
     {
         return enemyManager.GetEnemies()
@@ -188,5 +181,24 @@ public class PlayerAgent : Agent
     float ConvertExponent(float x, float exp)
     {
         return Mathf.Sign(x) * Mathf.Pow(Mathf.Abs(x), exp);
+    }
+
+    float AngleBetween(Transform player, Transform target, float defaultValue)
+    {
+        if (player == null || target == null)
+            return defaultValue;
+
+        Vector3 toTarget = target.position - player.position;
+        toTarget.y = 0f;
+        
+        float angle = Vector3.SignedAngle(player.forward, toTarget, Vector3.up);
+        return angle / 180f; // normalize to [-1,1]
+    }
+    float DistanceBetween(Transform player, Transform target, float defaultValue)
+    {
+        if (player == null || target == null)
+            return defaultValue;
+        float rawDistance = Vector3.Distance(player.position, target.position);
+        return (float)Math.Tanh(rawDistance / meaningfulDistance); // normalize to [0, 1]
     }
 }

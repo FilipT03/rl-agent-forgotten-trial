@@ -819,13 +819,14 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 1200
+  MaxStep: 4000
   playerMovement: {fileID: 8215781323873524056}
   terrain: {fileID: 32049418}
   goal: {fileID: 1657867663036903581}
   enemyManager: {fileID: 1841478361}
   heuristic: 1
   heuristicLookSensitivity: 0.02
+  meaningfulDistance: 15
   killY: -10
   minStart: {x: -12, y: 0.5, z: -12}
   maxStart: {x: 12, y: 0.5, z: 12}
@@ -833,6 +834,7 @@ MonoBehaviour:
   dieReward: -1
   existenceReward: -0.001
   timeoutReward: -0.1
+  damageReward: -0.02
   penaltyNearEnemy: -0.005
   dangerDistance: 3
 --- !u!4 &1657867663036903581
@@ -928,7 +930,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 5
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 4
@@ -937,9 +939,9 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 84d3d3a6a2abfbf4c8229d738d4eecc6, type: 3}
+  m_Model: {fileID: 5022602860645237092, guid: 099c2aecf4902a64aa1a96186011481b, type: 3}
   m_InferenceDevice: 0
-  m_BehaviorType: 0
+  m_BehaviorType: 2
   m_BehaviorName: PlayerAgent
   TeamId: 0
   m_UseChildSensors: 1
@@ -1152,7 +1154,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc4f34996c08d074b8c0453eb2122ae4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  agent: {fileID: 881585550282551780}
 --- !u!114 &3538503136380787852
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1478,6 +1479,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8677601283061492709}
+  - component: {fileID: 8677601283061492710}
   m_Layer: 0
   m_Name: TrainingObject
   m_TagString: Untagged
@@ -1597,7 +1599,7 @@ MonoBehaviour:
   groundPoint: {fileID: 4902634723927851443}
   normalSpeed: 10
   gravity: 9.81
-  lookSpeed: 30
+  lookSpeed: 20
   verticalRotationLimit: 25
   jumpVelocity: 10
   jumpPressWhileInAirTime: 0.5
@@ -1735,6 +1737,19 @@ Transform:
   - {fileID: 1802737739}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8677601283061492710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6064024212870491890}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3d598dfab4c2fc4aa32edb234e077e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 4153996805779641653}
 --- !u!33 &8773474992293179227
 MeshFilter:
   m_ObjectHideFlags: 0
