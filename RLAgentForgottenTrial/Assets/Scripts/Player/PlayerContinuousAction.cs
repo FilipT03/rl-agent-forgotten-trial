@@ -1,6 +1,6 @@
 
 
-public enum PlayerAction
+public enum PlayerContinuousAction
 {
     moveX = 0,
     moveZ,

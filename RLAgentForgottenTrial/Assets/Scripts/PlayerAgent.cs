@@ -3,6 +3,7 @@ using System.Linq;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,6 +16,7 @@ public class PlayerAgent : Agent
     [SerializeField] private Terrain terrain;
     [SerializeField] private Transform goal;
     [SerializeField] private EnemyManager enemyManager;
+    [SerializeField] private Renderer successIndicator;
 
     [Header("Options")]
     [SerializeField] private bool heuristic = false;
@@ -58,14 +60,18 @@ public class PlayerAgent : Agent
         sensor.AddObservation(nearestEnemy == null ? 0 : 1); // does enemy exist
         sensor.AddObservation(AngleBetween(player, nearestEnemy, 0f));    // [-1,1]
         sensor.AddObservation(DistanceBetween(player, nearestEnemy, -1f)); // [0,1] or -1
+
+        sensor.AddObservation(playerMovement.CanJump() ? 1 : 0);
     }
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
-        float moveX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerAction.moveX], -1f, 1f);
-        float moveZ = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerAction.moveZ], -1f, 1f);
-        float lookX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerAction.lookX], -1f, 1f);
-        float lookY = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerAction.lookZ], -1f, 1f);
+        float moveX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.moveX], -1f, 1f);
+        float moveZ = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.moveZ], -1f, 1f);
+        float lookX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.lookX], -1f, 1f);
+        float lookY = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.lookZ], -1f, 1f);
+
+        bool jump = actionBuffers.DiscreteActions[(int)PlayerDiscreteAction.jump] > 0;
 
         Vector3 playerPosition = playerMovement.transform.position;
 
@@ -77,6 +83,9 @@ public class PlayerAgent : Agent
 
         playerMovement.OnMove(new Vector2(moveX, moveZ));
         playerMovement.OnLook(new Vector2(lookX, lookY));
+
+        if (jump)
+            playerMovement.OnJump();
 
         Transform nearest = GetNearestEnemy(playerPosition);
         if (Vector3.Distance(nearest.position, playerPosition) < dangerDistance)
@@ -93,30 +102,30 @@ public class PlayerAgent : Agent
 
     public override void OnEpisodeBegin()
     {
-        Vector3 start = new(
-            Random.Range(minStart.x, maxStart.x),
-            Random.Range(minStart.y, maxStart.y),
-            Random.Range(minStart.z, maxStart.z));
-
-        Vector3 goalStart = new(
-            Random.Range(minStart.x, maxStart.x),
-            Random.Range(minStart.y, maxStart.y),
-            Random.Range(minStart.z, maxStart.z));
+        Vector3 start = GenerateRandomPosition(), 
+            goalStart = GenerateRandomPosition(),
+            enemyStart = GenerateRandomPosition();
 
         start.y = terrain.SampleHeight(start) + 0.5f;
         goalStart.y = terrain.SampleHeight(goalStart) + 0.5f;
+        enemyStart.y = terrain.SampleHeight(enemyStart) + 0.5f;
 
         playerMovement.MoveTo(start);
         goal.transform.position = goalStart;
+        GetNearestEnemy(playerMovement.transform.position).position = enemyStart; // TODO: replace with proper enemy spawning
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
         var continuousActionsOut = actionsOut.ContinuousActions;
-        continuousActionsOut[0] = horizontal.y; // Z axis
-        continuousActionsOut[1] = horizontal.x; // X axis
-        continuousActionsOut[2] = look.x * heuristicLookSensitivity;
-        continuousActionsOut[3] = look.y * heuristicLookSensitivity;
+        continuousActionsOut[(int)PlayerContinuousAction.moveZ] = horizontal.y; // Z axis
+        continuousActionsOut[(int)PlayerContinuousAction.moveX] = horizontal.x; // X axis
+        continuousActionsOut[(int)PlayerContinuousAction.lookX] = look.x * heuristicLookSensitivity;
+        continuousActionsOut[(int)PlayerContinuousAction.lookZ] = look.y * heuristicLookSensitivity;
+
+        var discreteActionsOut = actionsOut.DiscreteActions;
+        discreteActionsOut[(int)PlayerDiscreteAction.jump] = jumped ? 1 : 0;
+        jumped = false;
     }
 
     public void OnMove(InputValue value)
@@ -128,7 +137,8 @@ public class PlayerAgent : Agent
     public void OnJump(InputValue value)
     {
         if (!heuristic) return;
-        jumped = false;
+        print(value.Get<float>());
+        jumped = value.Get<float>() > 0.5;
     }
 
     public void OnLook(InputValue value)
@@ -150,14 +160,14 @@ public class PlayerAgent : Agent
     public void OnWin()
     {
         SetReward(winReward);
-        terrain.materialTemplate.color = Color.softGreen;
+        successIndicator.material.color = Color.softGreen;
         EndEpisode();
     }
 
     public void OnLose(float reward)
     {
         SetReward(reward);
-        terrain.materialTemplate.color = Color.softRed;
+        successIndicator.material.color = Color.softRed;
         EndEpisode();
     }
 
@@ -171,6 +181,21 @@ public class PlayerAgent : Agent
         return enemyManager.GetEnemies()
             .OrderBy(e => Vector3.Distance(e.position, agentPos))
             .First();
+    }
+    
+    Vector3 GenerateRandomPosition()
+    {
+        Vector3 result;
+        int attempts = 1000;
+        do
+        {
+            result = new(
+                Random.Range(minStart.x, maxStart.x),
+                Random.Range(minStart.y, maxStart.y),
+                Random.Range(minStart.z, maxStart.z));
+            attempts--;
+        } while (terrain.SampleHeight(result) <= killY && attempts > 0);
+        return result;
     }
 
     float ConvertSqrt(float x)

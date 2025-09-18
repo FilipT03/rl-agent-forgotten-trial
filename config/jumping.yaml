@@ -55,7 +55,7 @@ engine_settings:
   no_graphics_monitor: false
 environment_parameters: null
 checkpoint_settings:
-  run_id: jumping2
+  run_id: jumping3
   initialize_from: null
   load_model: false
   resume: false
@@ -64,7 +64,7 @@ checkpoint_settings:
   inference: false
   results_dir: results
 env_settings:
-  env_path: ../builds/jumping2/RLAgentForgottenTrial
+  env_path: ../builds/jumping3/RLAgentForgottenTrial
   env_args: null
   base_port: 5005
   num_envs: 1

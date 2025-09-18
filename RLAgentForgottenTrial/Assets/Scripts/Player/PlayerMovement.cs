@@ -178,7 +178,7 @@ public class PlayerMovement : MonoBehaviour
 
     public void OnJump()
     {
-        if (characterController.isGrounded || (sinceGround < fallingTimeWindowsForJump && sinceJump > fallingTimeWindowsForJump * 1.5f))
+        if (CanJump())
         {
             Jump();
         }
@@ -222,6 +222,7 @@ public class PlayerMovement : MonoBehaviour
         SoundManager.PlaySound(audioSource, SoundManager.Sound.playerJump);
         //animator.SetInteger("jumpState", 1);
     }
+    public bool CanJump() => characterController.isGrounded || (sinceGround < fallingTimeWindowsForJump && sinceJump > fallingTimeWindowsForJump * 1.5f);
 
     public void MoveTo(Vector3 position)
     {
