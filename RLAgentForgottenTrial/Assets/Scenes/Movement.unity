@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 32049416}
   - component: {fileID: 32049418}
   - component: {fileID: 32049417}
+  - component: {fileID: 32049419}
   m_Layer: 0
   m_Name: Terrain
   m_TagString: Ground
@@ -212,6 +213,38 @@ Terrain:
   m_EnableHeightmapRayTracing: 1
   m_EnableTreesAndDetailsRayTracing: 0
   m_TreeMotionVectorModeOverride: 3
+--- !u!114 &32049419
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 32049415}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializedVersion: 0
+  m_AgentTypeID: 0
+  m_CollectObjects: 0
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_UseGeometry: 0
+  m_DefaultArea: 0
+  m_GenerateLinks: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.16666667
+  m_MinRegionArea: 2
+  m_NavMeshData: {fileID: 23800000, guid: ad5f3691c7894ae45a26e4caebda4adf, type: 2}
+  m_BuildHeightMesh: 0
 --- !u!1 &61070527
 GameObject:
   m_ObjectHideFlags: 0
@@ -381,6 +414,168 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1802737738
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1802737739}
+  - component: {fileID: 1802737743}
+  - component: {fileID: 1802737742}
+  - component: {fileID: 1802737741}
+  - component: {fileID: 1802737740}
+  - component: {fileID: 1802737744}
+  m_Layer: 0
+  m_Name: Enemy
+  m_TagString: Enemy
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1802737739
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1802737738}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 2, z: 10.18}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8677601283061492709}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1802737740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1802737738}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2352ca3ceaaa29048b9775c39708e69a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agent: {fileID: 0}
+  player: {fileID: 7776607758108257183}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 0
+  audioSource: {fileID: 0}
+  health: 100
+  strength: 10
+  sightRange: 10
+  attackRange: 2
+  keepAggroTime: 5
+  timeBetweenAttacks: 1.5
+  angrySpeed: 6
+  normalSpeed: 3.5
+  drawGizmos: 0
+  walkPointRange: {x: 5, y: 5}
+--- !u!136 &1802737741
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1802737738}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &1802737742
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1802737738}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 40b8cf19fa165b04d90bc07a4d6d0b8c, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1802737743
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1802737738}
+  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!195 &1802737744
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1802737738}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 1
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &1841478357
 GameObject:
   m_ObjectHideFlags: 0
@@ -392,6 +587,7 @@ GameObject:
   - component: {fileID: 1841478360}
   - component: {fileID: 1841478359}
   - component: {fileID: 1841478358}
+  - component: {fileID: 1841478361}
   m_Layer: 0
   m_Name: Managers
   m_TagString: Untagged
@@ -439,6 +635,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1841478361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1841478357}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f07bfd40bb133564fa8efc02b605da7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemies:
+  - {fileID: 1802737739}
 --- !u!23 &318866930552465523
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -500,6 +710,7 @@ MonoBehaviour:
   m_DetectableTags:
   - Ground
   - Goal
+  - Enemy
   m_RaysPerDirection: 3
   m_MaxRayDegrees: 70
   m_SphereCastRadius: 0.5
@@ -578,6 +789,7 @@ MonoBehaviour:
   m_DetectableTags:
   - Ground
   - Goal
+  - Enemy
   m_RaysPerDirection: 3
   m_MaxRayDegrees: 70
   m_SphereCastRadius: 0.5
@@ -607,12 +819,14 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 1200
+  MaxStep: 4000
   playerMovement: {fileID: 8215781323873524056}
   terrain: {fileID: 32049418}
   goal: {fileID: 1657867663036903581}
-  heuristic: 0
+  enemyManager: {fileID: 1841478361}
+  heuristic: 1
   heuristicLookSensitivity: 0.02
+  meaningfulDistance: 15
   killY: -10
   minStart: {x: -12, y: 0.5, z: -12}
   maxStart: {x: 12, y: 0.5, z: 12}
@@ -620,6 +834,9 @@ MonoBehaviour:
   dieReward: -1
   existenceReward: -0.001
   timeoutReward: -0.1
+  damageReward: -0.02
+  penaltyNearEnemy: -0.005
+  dangerDistance: 3
 --- !u!4 &1657867663036903581
 Transform:
   m_ObjectHideFlags: 0
@@ -713,7 +930,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 0
+    VectorObservationSize: 5
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 4
@@ -722,9 +939,9 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 0}
+  m_Model: {fileID: 5022602860645237092, guid: 099c2aecf4902a64aa1a96186011481b, type: 3}
   m_InferenceDevice: 0
-  m_BehaviorType: 0
+  m_BehaviorType: 2
   m_BehaviorName: PlayerAgent
   TeamId: 0
   m_UseChildSensors: 1
@@ -769,6 +986,7 @@ MonoBehaviour:
   m_DetectableTags:
   - Ground
   - Goal
+  - Enemy
   m_RaysPerDirection: 3
   m_MaxRayDegrees: 70
   m_SphereCastRadius: 0.5
@@ -909,6 +1127,7 @@ MonoBehaviour:
   m_DetectableTags:
   - Ground
   - Goal
+  - Enemy
   m_RaysPerDirection: 3
   m_MaxRayDegrees: 70
   m_SphereCastRadius: 0.5
@@ -935,7 +1154,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc4f34996c08d074b8c0453eb2122ae4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  agent: {fileID: 881585550282551780}
 --- !u!114 &3538503136380787852
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1261,6 +1479,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8677601283061492709}
+  - component: {fileID: 8677601283061492710}
   m_Layer: 0
   m_Name: TrainingObject
   m_TagString: Untagged
@@ -1380,7 +1599,7 @@ MonoBehaviour:
   groundPoint: {fileID: 4902634723927851443}
   normalSpeed: 10
   gravity: 9.81
-  lookSpeed: 30
+  lookSpeed: 20
   verticalRotationLimit: 25
   jumpVelocity: 10
   jumpPressWhileInAirTime: 0.5
@@ -1515,8 +1734,22 @@ Transform:
   - {fileID: 540504055613258633}
   - {fileID: 7776607758108257183}
   - {fileID: 1657867663036903581}
+  - {fileID: 1802737739}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8677601283061492710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6064024212870491890}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3d598dfab4c2fc4aa32edb234e077e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 4153996805779641653}
 --- !u!33 &8773474992293179227
 MeshFilter:
   m_ObjectHideFlags: 0
