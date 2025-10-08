@@ -6,7 +6,6 @@ using Unity.MLAgents.Sensors;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
 using Random = UnityEngine.Random;
 
 public class PlayerAgent : Agent
@@ -17,6 +16,7 @@ public class PlayerAgent : Agent
     [SerializeField] private Transform goal;
     [SerializeField] private EnemyManager enemyManager;
     [SerializeField] private Renderer successIndicator;
+    [SerializeField] private PlayerAgentLogger logger;
 
     [Header("Options")]
     [SerializeField] private bool heuristic = false;
@@ -64,6 +64,7 @@ public class PlayerAgent : Agent
         sensor.AddObservation(playerMovement.CanJump() ? 1 : 0);
     }
 
+
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
         float moveX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.moveX], -1f, 1f);
@@ -89,19 +90,19 @@ public class PlayerAgent : Agent
 
         Transform nearest = GetNearestEnemy(playerPosition);
         if (Vector3.Distance(nearest.position, playerPosition) < dangerDistance)
-            AddReward(penaltyNearEnemy);
+            OnDetected();
 
         if (playerPosition.y < killY)
             OnLose(dieReward);
         else if (StepCount == MaxStep - 1)
             OnLose(timeoutReward);
         else
-            AddReward(existenceReward);
-
+            OnExistence();
     }
 
     public override void OnEpisodeBegin()
     {
+        logger.OnEpisodeBegin();
         Vector3 start = GenerateRandomPosition(), 
             goalStart = GenerateRandomPosition(),
             enemyStart = GenerateRandomPosition();
@@ -128,6 +129,19 @@ public class PlayerAgent : Agent
         jumped = false;
     }
 
+    public void OnDetected()
+    {
+        AddReward(penaltyNearEnemy);
+        logger.OnAction(penaltyNearEnemy);
+        logger.OnDetected();
+    }
+
+    public void OnExistence()
+    {
+        AddReward(existenceReward);
+        logger.OnAction(existenceReward);
+    }
+
     public void OnMove(InputValue value)
     {
         if (!heuristic) return;
@@ -137,7 +151,6 @@ public class PlayerAgent : Agent
     public void OnJump(InputValue value)
     {
         if (!heuristic) return;
-        print(value.Get<float>());
         jumped = value.Get<float>() > 0.5;
     }
 
@@ -159,21 +172,26 @@ public class PlayerAgent : Agent
 
     public void OnWin()
     {
-        SetReward(winReward);
+        AddReward(winReward);
         successIndicator.material.color = Color.softGreen;
+        logger.OnAction(winReward);
+        logger.OnEpisodeEnd(true);
         EndEpisode();
     }
 
     public void OnLose(float reward)
     {
-        SetReward(reward);
+        AddReward(reward);
         successIndicator.material.color = Color.softRed;
+        logger.OnAction(reward);
+        logger.OnEpisodeEnd(false);
         EndEpisode();
     }
 
     public void OnTakeDamage()
     {
         AddReward(damageReward);
+        logger.OnAction(damageReward);
     }
 
     private Transform GetNearestEnemy(Vector3 agentPos)
@@ -197,6 +215,7 @@ public class PlayerAgent : Agent
         } while (terrain.SampleHeight(result) <= killY && attempts > 0);
         return result;
     }
+
 
     float ConvertSqrt(float x)
     {
