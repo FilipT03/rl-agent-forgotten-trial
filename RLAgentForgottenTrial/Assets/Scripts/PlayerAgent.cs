@@ -1,13 +1,16 @@
 using System;
 using System.Linq;
+using System.Numerics;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
+using Quaternion = UnityEngine.Quaternion;
 using Random = UnityEngine.Random;
+using Vector2 = UnityEngine.Vector2;
+using Vector3 = UnityEngine.Vector3;
 
 public class PlayerAgent : Agent
 {
@@ -26,17 +29,19 @@ public class PlayerAgent : Agent
     [Header("Boundaries")]
     [SerializeField] private float killY = -10f;
     [SerializeField] private Vector3 minStart, maxStart;
+    [SerializeField] private float minSpawnY;
     [SerializeField] private bool divideSpawns;
     [SerializeField] private float horizontalDivider = 0, dividerAngle = 90, gizmoDividerY;
 
     [Header("Rewards")]
     [SerializeField] private float winReward;
-    [SerializeField] private float dieReward, existenceReward, timeoutReward, damageReward = -0.05f;
+    [SerializeField] private float dieReward, existenceReward, timeoutReward, damageReward = -0.05f, riverDieReward = -0.1f, distanceToGoalReward = 0.1f;
     [SerializeField] private float penaltyNearEnemy = -0.005f, penaltyJump = -0.005f;
     [SerializeField] private float dangerDistance = 3f;
 
     private Vector2 horizontal, look;
     private bool jumped;
+    private double previousDistance = 1f;
 
     public override void Initialize()
     {
@@ -44,7 +49,6 @@ public class PlayerAgent : Agent
         maxStart += transform.position;
     }
 
-    // goalAngle, goalDistance, enemyExistsFlag, closestEnemyAngle, closestEnemyDistance  =  5 
     public override void CollectObservations(VectorSensor sensor)
     {
         if (sensor == null) return;
@@ -70,6 +74,7 @@ public class PlayerAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
+        IsWithingTerrainBoundingBox(playerMovement.transform.position);
         float moveX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.moveX], -1f, 1f);
         float moveZ = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.moveZ], -1f, 1f);
         float lookX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.lookX], -1f, 1f);
@@ -95,8 +100,13 @@ public class PlayerAgent : Agent
         }
 
         Transform nearest = GetNearestEnemy(playerPosition);
-        if (Vector3.Distance(nearest.position, playerPosition) < dangerDistance)
+        if (nearest != null && Vector3.Distance(nearest.position, playerPosition) < dangerDistance)
             AddReward(penaltyNearEnemy);
+
+        double distanceToGoal = DistanceBetween(playerMovement.transform, goal, 1f);
+        print("Distance to goal: " + distanceToGoal);
+        AddReward((float)(previousDistance - distanceToGoal) * distanceToGoalReward);
+        previousDistance = distanceToGoal;
 
         if (playerPosition.y < killY)
             OnLose(dieReward);
@@ -110,8 +120,14 @@ public class PlayerAgent : Agent
     public override void OnEpisodeBegin()
     {
         Vector3 start = GenerateRandomPosition();
-        bool startIsBefore = IsBeforeDivider(start);
-        Vector3 goalStart = GenerateRandomPosition((newPos) => IsBeforeDivider(newPos) != startIsBefore);
+        Vector3 goalStart;
+        if (divideSpawns)
+        {
+            bool startIsBefore = IsBeforeDivider(start);
+            goalStart = GenerateRandomPosition((newPos) => IsBeforeDivider(newPos) != startIsBefore);
+        }
+        else
+            goalStart = GenerateRandomPosition();
         Vector3 enemyStart = GenerateRandomPosition();
 
         start.y = terrain.SampleHeight(start) + 0.5f;
@@ -161,9 +177,17 @@ public class PlayerAgent : Agent
 
     public void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.green;
+        Gizmos.color = Color.darkRed;
         Vector3 position = new Vector3(playerMovement.transform.position.x, killY, playerMovement.transform.position.z);
-        Gizmos.DrawWireCube(position, new Vector3(50, 0.1f, 50));
+        Gizmos.DrawWireCube(position - Vector3.up*0.05f, new Vector3(50, 0.1f, 50));
+        Gizmos.DrawLine(position + new Vector3(-25, 0, -25), position + new Vector3(25, 0, 25));
+        Gizmos.DrawLine(position + new Vector3(-25, 0, 25), position + new Vector3(25, 0, -25));
+
+        Gizmos.color = Color.green;
+        position = new Vector3(playerMovement.transform.position.x, minSpawnY, playerMovement.transform.position.z);
+        Gizmos.DrawWireCube(position - Vector3.up * 0.05f, new Vector3(50, 0.1f, 50));
+        Gizmos.DrawLine(position + new Vector3(-25, 0, -25), position + new Vector3(25, 0, 25));
+        Gizmos.DrawLine(position + new Vector3(-25, 0, 25), position + new Vector3(25, 0, -25));
 
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube((minStart + maxStart) / 2, maxStart - minStart);
@@ -179,16 +203,21 @@ public class PlayerAgent : Agent
 
     public void OnWin()
     {
-        SetReward(winReward);
+        AddReward(winReward);
         successIndicator.material.color = Color.softGreen;
         EndEpisode();
     }
 
     public void OnLose(float reward)
     {
-        SetReward(reward);
+        AddReward(reward);
         successIndicator.material.color = Color.softRed;
         EndEpisode();
+    }
+
+    public void OnTouchedWater()
+    {
+        OnLose(riverDieReward);
     }
 
     public void OnTakeDamage()
@@ -198,6 +227,8 @@ public class PlayerAgent : Agent
 
     private Transform GetNearestEnemy(Vector3 agentPos)
     {
+        if (enemyManager.GetEnemies().Count == 0)
+            return null;
         return enemyManager.GetEnemies()
             .OrderBy(e => Vector3.Distance(e.position, agentPos))
             .First();
@@ -214,7 +245,7 @@ public class PlayerAgent : Agent
                 Random.Range(minStart.y, maxStart.y),
                 Random.Range(minStart.z, maxStart.z));
             attempts--;
-        } while (attempts > 0 && (terrain.SampleHeight(result) <= killY || (condition != null && !condition.Invoke(result))));
+        } while (attempts > 0 && (terrain.SampleHeight(result) <= minSpawnY || (condition != null && !condition.Invoke(result))));
         return result;
     }
 
@@ -227,6 +258,15 @@ public class PlayerAgent : Agent
 
         return Vector3.Cross(divider, position - offset - transform.position).y > 0;
     }
+
+    bool IsWithingTerrainBoundingBox(Vector3 position)
+    {
+        if (terrain == null)
+            return false;
+        Vector3 min = terrain.GetPosition() + terrain.terrainData.bounds.min;
+        Vector3 max = terrain.GetPosition() + terrain.terrainData.bounds.max;
+        return !(position.x < min.x) && !(position.x > max.x) && !(position.y < min.y) && !(position.y > max.y);
+    }    
 
     float ConvertSqrt(float x)
     {

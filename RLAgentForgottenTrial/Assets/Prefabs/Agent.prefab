@@ -751,7 +751,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_BrainParameters:
     VectorObservationSize: 8
-    NumStackedVectorObservations: 1
+    NumStackedVectorObservations: 4
     m_ActionSpec:
       m_NumContinuousActions: 4
       BranchSizes: 02000000
@@ -759,9 +759,9 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 3a36fe957dd085748bc485a28529e1a3, type: 3}
+  m_Model: {fileID: 0}
   m_InferenceDevice: 0
-  m_BehaviorType: 2
+  m_BehaviorType: 0
   m_BehaviorName: PlayerAgent
   TeamId: 0
   m_UseChildSensors: 1
@@ -792,14 +792,21 @@ MonoBehaviour:
   heuristic: 0
   heuristicLookSensitivity: 0.02
   meaningfulDistance: 15
-  killY: 9.5
+  killY: 3.53
   minStart: {x: -14, y: 11, z: -14}
   maxStart: {x: 14, y: 11, z: 14}
+  minSpawnY: 9
+  divideSpawns: 0
+  horizontalDivider: 0
+  dividerAngle: 90
+  gizmoDividerY: 0
   winReward: 1
   dieReward: -1
   existenceReward: -0.001
   timeoutReward: -0.1
   damageReward: -0.02
+  riverDieReward: -0.5
+  distanceToGoalReward: 0.1
   penaltyNearEnemy: -0.005
   penaltyJump: -0.002
   dangerDistance: 3

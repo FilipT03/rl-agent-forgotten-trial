@@ -14,5 +14,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/AllElementsDevelopment.unity
     guid: 0687b2ead7b90a540aa54aba57897d8a
+  - enabled: 1
+    path: Assets/Scenes/Movement.unity
+    guid: 0acf2f54da323b940b3ff7763954b87f
+  - enabled: 1
+    path: Assets/Scenes/Enemy.unity
+    guid: 88f7728e955c79a43875cfb4ed4f1414
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
