@@ -26,11 +26,13 @@ public class PlayerAgent : Agent
     [Header("Boundaries")]
     [SerializeField] private float killY = -10f;
     [SerializeField] private Vector3 minStart, maxStart;
+    [SerializeField] private bool divideSpawns;
+    [SerializeField] private float horizontalDivider = 0, dividerAngle = 90, gizmoDividerY;
 
     [Header("Rewards")]
     [SerializeField] private float winReward;
     [SerializeField] private float dieReward, existenceReward, timeoutReward, damageReward = -0.05f;
-    [SerializeField] private float penaltyNearEnemy = -0.005f;
+    [SerializeField] private float penaltyNearEnemy = -0.005f, penaltyJump = -0.005f;
     [SerializeField] private float dangerDistance = 3f;
 
     private Vector2 horizontal, look;
@@ -49,7 +51,8 @@ public class PlayerAgent : Agent
 
         Transform player = playerMovement.transform;
 
-        sensor.AddObservation(AngleBetween(player, goal, 0f));    // [-1,1]
+        sensor.AddObservation(AngleBetweenHorizontal(player, goal, 0f));  // [-1,1] angle on the horizontal plane
+        sensor.AddObservation(AngleBetweenVertical(player, goal, 0f));    // [-1,1] vertical angle between the horizontal plane and the vector between the player and the goal
         sensor.AddObservation(DistanceBetween(player, goal, 0f)); // [ 0,1]
 
 
@@ -58,7 +61,8 @@ public class PlayerAgent : Agent
             nearestEnemy = GetNearestEnemy(player.position);
 
         sensor.AddObservation(nearestEnemy == null ? 0 : 1); // does enemy exist
-        sensor.AddObservation(AngleBetween(player, nearestEnemy, 0f));    // [-1,1]
+        sensor.AddObservation(AngleBetweenHorizontal(player, nearestEnemy, 0f));  // [-1,1]
+        sensor.AddObservation(AngleBetweenVertical(player, nearestEnemy, 0f));    // [-1,1]
         sensor.AddObservation(DistanceBetween(player, nearestEnemy, -1f)); // [0,1] or -1
 
         sensor.AddObservation(playerMovement.CanJump() ? 1 : 0);
@@ -85,7 +89,10 @@ public class PlayerAgent : Agent
         playerMovement.OnLook(new Vector2(lookX, lookY));
 
         if (jump)
+        {
             playerMovement.OnJump();
+            AddReward(penaltyJump);
+        }
 
         Transform nearest = GetNearestEnemy(playerPosition);
         if (Vector3.Distance(nearest.position, playerPosition) < dangerDistance)
@@ -102,9 +109,10 @@ public class PlayerAgent : Agent
 
     public override void OnEpisodeBegin()
     {
-        Vector3 start = GenerateRandomPosition(), 
-            goalStart = GenerateRandomPosition(),
-            enemyStart = GenerateRandomPosition();
+        Vector3 start = GenerateRandomPosition();
+        bool startIsBefore = IsBeforeDivider(start);
+        Vector3 goalStart = GenerateRandomPosition((newPos) => IsBeforeDivider(newPos) != startIsBefore);
+        Vector3 enemyStart = GenerateRandomPosition();
 
         start.y = terrain.SampleHeight(start) + 0.5f;
         goalStart.y = terrain.SampleHeight(goalStart) + 0.5f;
@@ -112,7 +120,12 @@ public class PlayerAgent : Agent
 
         playerMovement.MoveTo(start);
         goal.transform.position = goalStart;
-        GetNearestEnemy(playerMovement.transform.position).position = enemyStart; // TODO: replace with proper enemy spawning
+        Transform enemy = GetNearestEnemy(playerMovement.transform.position); // TODO: replace with proper enemy spawning
+        if (enemy != null)
+        {
+            enemy.position = enemyStart;
+            enemy.GetComponent<EnemyAI>().ResetValues();
+        }
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -137,7 +150,6 @@ public class PlayerAgent : Agent
     public void OnJump(InputValue value)
     {
         if (!heuristic) return;
-        print(value.Get<float>());
         jumped = value.Get<float>() > 0.5;
     }
 
@@ -155,6 +167,14 @@ public class PlayerAgent : Agent
 
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireCube((minStart + maxStart) / 2, maxStart - minStart);
+
+        Gizmos.color = Color.darkGreen;
+        Vector3 divider = Vector3.forward * 100f;
+        Vector3 offset = Vector3.right * horizontalDivider;
+        divider = Quaternion.Euler(0, dividerAngle, 0) * divider;
+        offset = Quaternion.Euler(0, dividerAngle, 0) * offset;
+        Vector3 newCenter = transform.position + Vector3.up * gizmoDividerY + offset;
+        Gizmos.DrawLine(newCenter - divider / 2, newCenter + divider / 2);
     }
 
     public void OnWin()
@@ -183,7 +203,7 @@ public class PlayerAgent : Agent
             .First();
     }
     
-    Vector3 GenerateRandomPosition()
+    Vector3 GenerateRandomPosition(Func<Vector3, bool> condition = null)
     {
         Vector3 result;
         int attempts = 1000;
@@ -194,8 +214,18 @@ public class PlayerAgent : Agent
                 Random.Range(minStart.y, maxStart.y),
                 Random.Range(minStart.z, maxStart.z));
             attempts--;
-        } while (terrain.SampleHeight(result) <= killY && attempts > 0);
+        } while (attempts > 0 && (terrain.SampleHeight(result) <= killY || (condition != null && !condition.Invoke(result))));
         return result;
+    }
+
+    bool IsBeforeDivider(Vector3 position)
+    {
+        Vector3 divider = Vector3.forward * 1f;
+        Vector3 offset = Vector3.right * horizontalDivider;
+        divider = Quaternion.Euler(0, dividerAngle, 0) * divider;
+        offset = Quaternion.Euler(0, dividerAngle, 0) * offset;
+
+        return Vector3.Cross(divider, position - offset - transform.position).y > 0;
     }
 
     float ConvertSqrt(float x)
@@ -208,7 +238,7 @@ public class PlayerAgent : Agent
         return Mathf.Sign(x) * Mathf.Pow(Mathf.Abs(x), exp);
     }
 
-    float AngleBetween(Transform player, Transform target, float defaultValue)
+    float AngleBetweenHorizontal(Transform player, Transform target, float defaultValue)
     {
         if (player == null || target == null)
             return defaultValue;
@@ -218,6 +248,21 @@ public class PlayerAgent : Agent
         
         float angle = Vector3.SignedAngle(player.forward, toTarget, Vector3.up);
         return angle / 180f; // normalize to [-1,1]
+    }
+    float AngleBetweenVertical(Transform player, Transform target, float defaultValue)
+    {
+        if (player == null || target == null)
+            return defaultValue;
+
+        Vector3 toTarget = target.position - player.position;
+        Vector3 flat = new Vector3(toTarget.x, 0, toTarget.z);
+        Vector3 left = new Vector3(-toTarget.z, 0, toTarget.x);
+
+        if (flat.sqrMagnitude < 0.0001f)
+            return target.position.y > player.position.y ? 1f : -1f;
+
+        float angle = Vector3.SignedAngle(flat, toTarget, left);
+        return Mathf.Clamp(angle / 90f, -1f, 1f); // normalize to [-1,1]
     }
     float DistanceBetween(Transform player, Transform target, float defaultValue)
     {

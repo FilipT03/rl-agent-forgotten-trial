@@ -22,6 +22,8 @@ public class EnemyAI: MonoBehaviour
     public float angrySpeed = 6f;
     public float normalSpeed = 3.5f;
 
+    private float startHealth;
+
     [Header("Debug")]
     public bool drawGizmos = false;
 
@@ -34,6 +36,7 @@ public class EnemyAI: MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         audioSource = GetComponent<AudioSource>();
+        startHealth = health;
     }
 
     private void Start()
@@ -46,6 +49,12 @@ public class EnemyAI: MonoBehaviour
     private void Update()
     {
         StateMachine.UpdateState();
+    }
+
+    public void ResetValues()
+    {
+        health = startHealth;
+        StateMachine.ChangeState(new EnemyPatrolState());
     }
 
     public void TakeDamage(float damage)
