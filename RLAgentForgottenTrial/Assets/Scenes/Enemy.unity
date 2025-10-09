@@ -622,7 +622,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_NavMeshData
       value: 
-      objectReference: {fileID: 23800000, guid: 07212e5d31ef19b4690c9143f5bd01bf,
+      objectReference: {fileID: 23800000, guid: 576b566237a81c74e99b0b8024dbb411,
         type: 2}
     - target: {fileID: 8318665619428974925, guid: c54d647e8ad669c46946df840561f9c4,
         type: 3}
@@ -722,6 +722,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8677601283061492709}
     m_Modifications:
+    - target: {fileID: 836303905274127797, guid: df15d30f7da5eaa4094530aaeba5b483,
+        type: 3}
+      propertyPath: m_Model
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 836303905274127797, guid: df15d30f7da5eaa4094530aaeba5b483,
+        type: 3}
+      propertyPath: m_BrainParameters.NumStackedVectorObservations
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 4620943710242343411, guid: df15d30f7da5eaa4094530aaeba5b483,
         type: 3}
       propertyPath: goal
@@ -1000,7 +1010,7 @@ PrefabInstance:
     - target: {fileID: 4826205825356220843, guid: 84ed8acf21c1edd4191660bb999698d1,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8805837086040929256, guid: 84ed8acf21c1edd4191660bb999698d1,
         type: 3}
@@ -1010,7 +1020,7 @@ PrefabInstance:
     - target: {fileID: 8805837086040929256, guid: 84ed8acf21c1edd4191660bb999698d1,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 12.46
+      value: 13.71
       objectReference: {fileID: 0}
     - target: {fileID: 8805837086040929256, guid: 84ed8acf21c1edd4191660bb999698d1,
         type: 3}

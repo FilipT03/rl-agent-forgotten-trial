@@ -30,4 +30,9 @@ public class Player : MonoBehaviour
     {
         agent.OnWin();
     }
+
+    public void TouchedWater()
+    {
+        agent.OnTouchedWater();
+    }
 }
