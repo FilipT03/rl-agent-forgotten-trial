@@ -103,7 +103,7 @@ public class PlayerAgent : Agent
         }
 
         Transform nearest = GetNearestEnemy(playerPosition);
-        if (Vector3.Distance(nearest.position, playerPosition) < dangerDistance)
+        if (nearest != null && Vector3.Distance(nearest.position, playerPosition) < dangerDistance)
             OnDetected();
 
         double distanceToGoal = DistanceBetween(playerMovement.transform, goal, 1f);
