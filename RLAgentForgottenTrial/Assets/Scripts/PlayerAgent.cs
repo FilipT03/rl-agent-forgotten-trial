@@ -20,6 +20,7 @@ public class PlayerAgent : Agent
     [SerializeField] private Transform goal;
     [SerializeField] private EnemyManager enemyManager;
     [SerializeField] private Renderer successIndicator;
+    [SerializeField] private PlayerAgentLogger logger;
 
     [Header("Options")]
     [SerializeField] private bool heuristic = false;
@@ -72,6 +73,7 @@ public class PlayerAgent : Agent
         sensor.AddObservation(playerMovement.CanJump() ? 1 : 0);
     }
 
+
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
         IsWithingTerrainBoundingBox(playerMovement.transform.position);
@@ -97,15 +99,17 @@ public class PlayerAgent : Agent
         {
             playerMovement.OnJump();
             AddReward(penaltyJump);
+            logger.OnAction(penaltyJump);
         }
 
         Transform nearest = GetNearestEnemy(playerPosition);
         if (nearest != null && Vector3.Distance(nearest.position, playerPosition) < dangerDistance)
-            AddReward(penaltyNearEnemy);
+            OnDetected();
 
         double distanceToGoal = DistanceBetween(playerMovement.transform, goal, 1f);
-        print("Distance to goal: " + distanceToGoal);
-        AddReward((float)(previousDistance - distanceToGoal) * distanceToGoalReward);
+        float distanceReward = (float)(previousDistance - distanceToGoal) * distanceToGoalReward;
+        AddReward(distanceReward);
+        logger.OnAction(distanceReward);
         previousDistance = distanceToGoal;
 
         if (playerPosition.y < killY)
@@ -113,12 +117,12 @@ public class PlayerAgent : Agent
         else if (StepCount == MaxStep - 1)
             OnLose(timeoutReward);
         else
-            AddReward(existenceReward);
-
+            OnExistence();
     }
 
     public override void OnEpisodeBegin()
     {
+        logger.OnEpisodeBegin();
         Vector3 start = GenerateRandomPosition();
         Vector3 goalStart;
         if (divideSpawns)
@@ -155,6 +159,19 @@ public class PlayerAgent : Agent
         var discreteActionsOut = actionsOut.DiscreteActions;
         discreteActionsOut[(int)PlayerDiscreteAction.jump] = jumped ? 1 : 0;
         jumped = false;
+    }
+
+    public void OnDetected()
+    {
+        AddReward(penaltyNearEnemy);
+        logger.OnAction(penaltyNearEnemy);
+        logger.OnDetected();
+    }
+
+    public void OnExistence()
+    {
+        AddReward(existenceReward);
+        logger.OnAction(existenceReward);
     }
 
     public void OnMove(InputValue value)
@@ -205,6 +222,8 @@ public class PlayerAgent : Agent
     {
         AddReward(winReward);
         successIndicator.material.color = Color.softGreen;
+        logger.OnAction(winReward);
+        logger.OnEpisodeEnd(true);
         EndEpisode();
     }
 
@@ -212,6 +231,8 @@ public class PlayerAgent : Agent
     {
         AddReward(reward);
         successIndicator.material.color = Color.softRed;
+        logger.OnAction(reward);
+        logger.OnEpisodeEnd(false);
         EndEpisode();
     }
 
@@ -223,6 +244,7 @@ public class PlayerAgent : Agent
     public void OnTakeDamage()
     {
         AddReward(damageReward);
+        logger.OnAction(damageReward);
     }
 
     private Transform GetNearestEnemy(Vector3 agentPos)
