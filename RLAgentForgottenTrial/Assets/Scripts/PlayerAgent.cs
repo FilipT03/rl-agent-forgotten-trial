@@ -26,6 +26,7 @@ public class PlayerAgent : Agent
     [SerializeField] private bool heuristic = false;
     [SerializeField] private float heuristicLookSensitivity = 0.0005f;
     [SerializeField] private float meaningfulDistance = 15f;
+    [SerializeField] private float maxDrawingTime;
 
     [Header("Boundaries")]
     [SerializeField] private float killY = -10f;
@@ -43,6 +44,8 @@ public class PlayerAgent : Agent
     private Vector2 horizontal, look;
     private bool jumped;
     private double previousDistance = 1f;
+    private bool drawing;
+    private float drawTime;
 
     public override void Initialize()
     {
@@ -76,7 +79,6 @@ public class PlayerAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
-        IsWithingTerrainBoundingBox(playerMovement.transform.position);
         float moveX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.moveX], -1f, 1f);
         float moveZ = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.moveZ], -1f, 1f);
         float lookX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.lookX], -1f, 1f);
@@ -190,6 +192,19 @@ public class PlayerAgent : Agent
     {
         if (!heuristic) return;
         look = value.Get<Vector2>();
+    }
+
+    public void OnShootPress(InputValue value)
+    {
+        if (!heuristic) return;
+        drawing = true;
+        drawTime = 0f;
+
+    }
+    public void OnShootRelease(InputValue value)
+    {
+        if (!heuristic) return;
+        drawing = false;
     }
 
     public void OnDrawGizmosSelected()
