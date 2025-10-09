@@ -17,7 +17,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("General Variables")]
     [SerializeField] Transform groundPoint;
-    [SerializeField] float normalSpeed = 10f;
+    [SerializeField] float normalSpeed = 10f, airSpeedMultiplier = 0.8f;
     [SerializeField] float gravity = 9.81f, lookSpeed = 3f, verticalRotationLimit = 330f;
 
     [Header("Jumping")]
@@ -67,14 +67,15 @@ public class PlayerMovement : MonoBehaviour
             if (inJump)
                 inJump = false;
             if (yVelocity < 0)
-                yVelocity = 0;
-            if (sinceLastAirJumpPress < jumpPressWhileInAirTime)
-            {
-                Jump();
-                sinceLastAirJumpPress = jumpPressWhileInAirTime + 1f;
-            }
+                yVelocity = -2f;
+            //if (sinceLastAirJumpPress < jumpPressWhileInAirTime)        Air jumps may be confusing the agent, as it doesn't know that it can jump
+            //{
+            //    Jump();
+            //    sinceLastAirJumpPress = jumpPressWhileInAirTime + 1f;
+            //}
         }
-
+        else
+            currentSpeed *= airSpeedMultiplier;
 
         /// Apply gravity movement
         yVelocity -= gravity * Time.fixedDeltaTime;
@@ -82,8 +83,9 @@ public class PlayerMovement : MonoBehaviour
         Vector3 immediateVelocity = new Vector3(0, FixStairs(yVelocity), 0);
 
         /// Move the character
-        Vector3 baseVelocity = currentSpeed * horizontal + yVelocity * Vector3.up;
-        baseVelocity = AdjustVelocityToSlope(baseVelocity);
+        Vector3 baseVelocity = currentSpeed * horizontal + yVelocity * Vector3.up; 
+        if (horizontal.sqrMagnitude > 0.0001f)
+            baseVelocity = AdjustVelocityToSlope(baseVelocity);
         characterController.Move(Time.fixedDeltaTime * baseVelocity + immediateVelocity);
 
         StateHandler();
@@ -178,7 +180,7 @@ public class PlayerMovement : MonoBehaviour
 
     public void OnJump()
     {
-        if (characterController.isGrounded || (sinceGround < fallingTimeWindowsForJump && sinceJump > fallingTimeWindowsForJump * 1.5f))
+        if (CanJump())
         {
             Jump();
         }
@@ -222,6 +224,7 @@ public class PlayerMovement : MonoBehaviour
         SoundManager.PlaySound(audioSource, SoundManager.Sound.playerJump);
         //animator.SetInteger("jumpState", 1);
     }
+    public bool CanJump() => characterController.isGrounded || (sinceGround < fallingTimeWindowsForJump && sinceJump > fallingTimeWindowsForJump * 1.5f);
 
     public void MoveTo(Vector3 position)
     {

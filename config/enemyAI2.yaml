@@ -51,11 +51,11 @@ engine_settings:
   time_scale: 20.0
   target_frame_rate: -1
   capture_frame_rate: 60
-  no_graphics: false
+  no_graphics: true
   no_graphics_monitor: false
 environment_parameters: null
 checkpoint_settings:
-  run_id: enemyai2
+  run_id: jumping2
   initialize_from: null
   load_model: false
   resume: false
@@ -63,6 +63,17 @@ checkpoint_settings:
   train_model: false
   inference: false
   results_dir: results
+env_settings:
+  env_path: ../builds/jumping2/RLAgentForgottenTrial
+  env_args: null
+  base_port: 5005
+  num_envs: 1
+  num_areas: 1
+  timeout_wait: 60
+  seed: -1
+  max_lifetime_restarts: 10
+  restarts_rate_limit_n: 1
+  restarts_rate_limit_period_s: 60
 torch_settings:
   device: null
 debug: false
