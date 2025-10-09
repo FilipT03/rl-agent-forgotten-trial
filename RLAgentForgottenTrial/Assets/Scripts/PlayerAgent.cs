@@ -99,6 +99,7 @@ public class PlayerAgent : Agent
         {
             playerMovement.OnJump();
             AddReward(penaltyJump);
+            logger.OnAction(penaltyJump);
         }
 
         Transform nearest = GetNearestEnemy(playerPosition);
@@ -106,8 +107,9 @@ public class PlayerAgent : Agent
             OnDetected();
 
         double distanceToGoal = DistanceBetween(playerMovement.transform, goal, 1f);
-        print("Distance to goal: " + distanceToGoal);
-        AddReward((float)(previousDistance - distanceToGoal) * distanceToGoalReward);
+        float distanceReward = (float)(previousDistance - distanceToGoal) * distanceToGoalReward;
+        AddReward(distanceReward);
+        logger.OnAction(distanceReward);
         previousDistance = distanceToGoal;
 
         if (playerPosition.y < killY)
