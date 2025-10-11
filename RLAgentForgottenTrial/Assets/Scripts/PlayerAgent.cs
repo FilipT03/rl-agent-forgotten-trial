@@ -1,10 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Quaternion = UnityEngine.Quaternion;
@@ -16,11 +15,13 @@ public class PlayerAgent : Agent
 {
     [Header("References")]
     [SerializeField] private PlayerMovement playerMovement;
+    [SerializeField] private PlayerShooting playerShooting;
     [SerializeField] private Terrain terrain;
     [SerializeField] private Transform goal;
     [SerializeField] private EnemyManager enemyManager;
     [SerializeField] private Renderer successIndicator;
     [SerializeField] private PlayerAgentLogger logger;
+    private TrainingReferences trainingReferences;
 
     [Header("Options")]
     [SerializeField] private bool heuristic = false;
@@ -37,20 +38,30 @@ public class PlayerAgent : Agent
 
     [Header("Rewards")]
     [SerializeField] private float winReward;
-    [SerializeField] private float dieReward, existenceReward, timeoutReward, damageReward = -0.05f, riverDieReward = -0.1f, distanceToGoalReward = 0.1f;
-    [SerializeField] private float penaltyNearEnemy = -0.005f, penaltyJump = -0.005f;
+    [SerializeField] private float hitTargetReward, hitAllTargetsReward, hitEnemyReward, killedEnemyReward;
+    [SerializeField] private float distanceToGoalReward = 0.1f;
+
+    [Header("Penalties")]
+    [SerializeField] private float dieReward;
+    [SerializeField] private float existenceReward, timeoutReward, damageReward = -0.05f, riverDieReward = -0.1f;
+    [SerializeField] private float penaltyNearEnemy = -0.005f, penaltyJump = -0.005f, penaltyArrow = -0.005f;
     [SerializeField] private float dangerDistance = 3f;
+
 
     private Vector2 horizontal, look;
     private bool jumped;
     private double previousDistance = 1f;
-    private bool drawing;
-    private float drawTime;
+    private bool shoot;
+    private float drawStartTime;
+    private readonly HashSet<int> targetsHit = new();
+    private int totalTargets;
 
     public override void Initialize()
     {
         minStart += transform.position;
         maxStart += transform.position;
+        trainingReferences = GetComponentInParent<TrainingReferences>();
+        totalTargets = trainingReferences.GetAllTargets().Count;
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -59,40 +70,51 @@ public class PlayerAgent : Agent
 
         Transform player = playerMovement.transform;
 
+        // Goal observations
         sensor.AddObservation(AngleBetweenHorizontal(player, goal, 0f));  // [-1,1] angle on the horizontal plane
         sensor.AddObservation(AngleBetweenVertical(player, goal, 0f));    // [-1,1] vertical angle between the horizontal plane and the vector between the player and the goal
         sensor.AddObservation(DistanceBetween(player, goal, 0f)); // [ 0,1]
 
-
-        Transform nearestEnemy = null;
-        if (enemyManager != null && enemyManager.GetEnemies().Count > 0)
-            nearestEnemy = GetNearestEnemy(player.position);
+        // Enemy observations
+        Transform nearestEnemy = GetNearestEnemy(player.position);
 
         sensor.AddObservation(nearestEnemy == null ? 0 : 1); // does enemy exist
         sensor.AddObservation(AngleBetweenHorizontal(player, nearestEnemy, 0f));  // [-1,1]
         sensor.AddObservation(AngleBetweenVertical(player, nearestEnemy, 0f));    // [-1,1]
         sensor.AddObservation(DistanceBetween(player, nearestEnemy, -1f)); // [0,1] or -1
 
+        // Target observations
+        Transform nearestTarget = GetNearestUnhitTarget(player.position);
+
+        sensor.AddObservation(nearestTarget == null ? 0 : 1); // are there any unhit targets
+        sensor.AddObservation(AngleBetweenHorizontal(player, nearestTarget, 0f));  // [-1,1]
+        sensor.AddObservation(AngleBetweenVertical(player, nearestTarget, 0f));    // [-1,1]
+        sensor.AddObservation(DistanceBetween(player, nearestTarget, -1f)); // [0,1] or -1
+
+        // Actions observations
         sensor.AddObservation(playerMovement.CanJump() ? 1 : 0);
     }
 
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
+        logger.OnStep();
+
         float moveX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.moveX], -1f, 1f);
         float moveZ = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.moveZ], -1f, 1f);
         float lookX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.lookX], -1f, 1f);
         float lookY = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.lookZ], -1f, 1f);
-
         bool jump = actionBuffers.DiscreteActions[(int)PlayerDiscreteAction.jump] > 0;
-
-        Vector3 playerPosition = playerMovement.transform.position;
 
         if (!heuristic)
         {
             lookX = ConvertExponent(lookX, 3f);
             lookY = ConvertExponent(lookY, 3f);
         }
+
+
+        Vector3 playerPosition = playerMovement.transform.position;
+
 
         playerMovement.OnMove(new Vector2(moveX, moveZ));
         playerMovement.OnLook(new Vector2(lookX, lookY));
@@ -102,6 +124,18 @@ public class PlayerAgent : Agent
             playerMovement.OnJump();
             AddReward(penaltyJump);
             logger.OnAction(penaltyJump);
+        }
+
+        if (shoot)
+        {
+            shoot = false;
+            float drawTime = Time.fixedTime - drawStartTime;
+            float power = Math.Min(drawTime, maxDrawingTime) / maxDrawingTime;
+            power = ConvertSqrt(power);
+            playerShooting.Shoot(power);
+            AddReward(penaltyArrow);
+            logger.OnAction(penaltyArrow);
+            logger.OnShotFired();
         }
 
         Transform nearest = GetNearestEnemy(playerPosition);
@@ -115,9 +149,9 @@ public class PlayerAgent : Agent
         previousDistance = distanceToGoal;
 
         if (playerPosition.y < killY)
-            OnLose(dieReward);
+            Lose(dieReward);
         else if (StepCount == MaxStep - 1)
-            OnLose(timeoutReward);
+            Lose(timeoutReward);
         else
             OnExistence();
     }
@@ -148,6 +182,10 @@ public class PlayerAgent : Agent
             enemy.position = enemyStart;
             enemy.GetComponent<EnemyAI>().ResetValues();
         }
+
+        trainingReferences.GetAllArrows().ForEach(Destroy);
+        targetsHit.Clear();
+        trainingReferences.GetAllTargets().ForEach(target => target.ResetHitState());
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -163,6 +201,24 @@ public class PlayerAgent : Agent
         jumped = false;
     }
 
+    public void Win()
+    {
+        AddReward(winReward);
+        successIndicator.material.color = Color.softGreen;
+        logger.OnAction(winReward);
+        logger.OnEpisodeEnd(true);
+        EndEpisode();
+    }
+
+    public void Lose(float reward)
+    {
+        AddReward(reward);
+        successIndicator.material.color = Color.softRed;
+        logger.OnAction(reward);
+        logger.OnEpisodeEnd(false);
+        EndEpisode();
+    }
+
     public void OnDetected()
     {
         AddReward(penaltyNearEnemy);
@@ -176,6 +232,47 @@ public class PlayerAgent : Agent
         logger.OnAction(existenceReward);
     }
 
+    public void OnTouchedWater()
+    {
+        Lose(riverDieReward);
+    }
+
+    public void OnTakeDamage()
+    {
+        AddReward(damageReward);
+        logger.OnAction(damageReward);
+    }
+
+    public void OnHitTarget(int targetID)
+    {
+        if (targetsHit.Contains(targetID))
+            return;
+        targetsHit.Add(targetID);
+        if (targetsHit.Count == totalTargets)
+        {
+            AddReward(hitAllTargetsReward);
+            logger.OnAction(hitAllTargetsReward);
+            logger.OnHitAllTargets();
+        }
+
+        AddReward(hitTargetReward);
+        logger.OnAction(hitTargetReward);
+        logger.OnHitTarget();
+    }
+
+    public void OnKilledEnemy()
+    {
+        AddReward(killedEnemyReward);
+        logger.OnAction(killedEnemyReward);
+    }
+
+    public void OnHitEnemy()
+    {
+        AddReward(hitEnemyReward);
+        logger.OnAction(hitEnemyReward);
+    }
+
+    #region InputActions
     public void OnMove(InputValue value)
     {
         if (!heuristic) return;
@@ -197,15 +294,16 @@ public class PlayerAgent : Agent
     public void OnShootPress(InputValue value)
     {
         if (!heuristic) return;
-        drawing = true;
-        drawTime = 0f;
-
+        shoot = false;
+        drawStartTime = Time.fixedTime;
     }
     public void OnShootRelease(InputValue value)
     {
         if (!heuristic) return;
-        drawing = false;
+        shoot = true;
     }
+    #endregion
+
 
     public void OnDrawGizmosSelected()
     {
@@ -233,35 +331,7 @@ public class PlayerAgent : Agent
         Gizmos.DrawLine(newCenter - divider / 2, newCenter + divider / 2);
     }
 
-    public void OnWin()
-    {
-        AddReward(winReward);
-        successIndicator.material.color = Color.softGreen;
-        logger.OnAction(winReward);
-        logger.OnEpisodeEnd(true);
-        EndEpisode();
-    }
-
-    public void OnLose(float reward)
-    {
-        AddReward(reward);
-        successIndicator.material.color = Color.softRed;
-        logger.OnAction(reward);
-        logger.OnEpisodeEnd(false);
-        EndEpisode();
-    }
-
-    public void OnTouchedWater()
-    {
-        OnLose(riverDieReward);
-    }
-
-    public void OnTakeDamage()
-    {
-        AddReward(damageReward);
-        logger.OnAction(damageReward);
-    }
-
+    #region Utility
     private Transform GetNearestEnemy(Vector3 agentPos)
     {
         if (enemyManager.GetEnemies().Count == 0)
@@ -270,7 +340,17 @@ public class PlayerAgent : Agent
             .OrderBy(e => Vector3.Distance(e.position, agentPos))
             .First();
     }
-    
+
+    private Transform GetNearestUnhitTarget(Vector3 agentPos)
+    {
+        if (trainingReferences.GetAllTargets().Count == 0)
+            return null;
+        return trainingReferences.GetAllTargets()
+            .Where(t => !t.IsHit)
+            .OrderBy(t => Vector3.Distance(t.transform.position, agentPos))
+            .First().transform;
+    }
+
     Vector3 GenerateRandomPosition(Func<Vector3, bool> condition = null)
     {
         Vector3 result;
@@ -348,4 +428,5 @@ public class PlayerAgent : Agent
         float rawDistance = Vector3.Distance(player.position, target.position);
         return (float)Math.Tanh(rawDistance / meaningfulDistance); // normalize to [0, 1]
     }
+    #endregion
 }

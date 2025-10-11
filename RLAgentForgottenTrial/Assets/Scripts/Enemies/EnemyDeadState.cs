@@ -7,7 +7,7 @@ public class EnemyDeadState : IEnemyState
     {
         enemy.agent.enabled = false;
         Debug.Log("Enemy Died");
-        enemy.Invoke(nameof(DestroyEnemy), 180f);
+        enemy.Invoke(nameof(DestroyEnemy), 0f); // Since there are no animations, it's better to just destroy enemies immediately 
     }
 
     public void Exit(EnemyAI enemy) {}

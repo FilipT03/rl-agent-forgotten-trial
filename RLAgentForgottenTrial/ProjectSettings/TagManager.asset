@@ -8,15 +8,18 @@ TagManager:
   - Ground
   - Enemy
   - Water
+  - Projectile
+  - Target
+  - Uninteractable
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - No Render
   - Water
   - UI
-  - 
-  - 
+  - Ignore Player
+  - Player
   - 
   - 
   - 
