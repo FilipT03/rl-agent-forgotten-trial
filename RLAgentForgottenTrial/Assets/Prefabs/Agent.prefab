@@ -114,6 +114,7 @@ MonoBehaviour:
   - Enemy
   - Water
   - Target
+  - Uninteractable
   m_RaysPerDirection: 1
   m_MaxRayDegrees: 0
   m_SphereCastRadius: 0.5
@@ -429,7 +430,7 @@ MonoBehaviour:
   gravity: 15
   lookSpeed: 20
   verticalRotationLimit: 25
-  jumpVelocity: 8
+  jumpVelocity: 11
   jumpPressWhileInAirTime: 0.5
   fallingTimeWindowsForJump: 0.1
 --- !u!143 &1246309827602809708
@@ -709,6 +710,7 @@ MonoBehaviour:
   - Enemy
   - Water
   - Target
+  - Uninteractable
   m_RaysPerDirection: 3
   m_MaxRayDegrees: 70
   m_SphereCastRadius: 0.5
@@ -742,6 +744,7 @@ MonoBehaviour:
   - Enemy
   - Water
   - Target
+  - Uninteractable
   m_RaysPerDirection: 3
   m_MaxRayDegrees: 70
   m_SphereCastRadius: 0.5
@@ -775,6 +778,7 @@ MonoBehaviour:
   - Enemy
   - Water
   - Target
+  - Uninteractable
   m_RaysPerDirection: 3
   m_MaxRayDegrees: 70
   m_SphereCastRadius: 0.5
@@ -808,6 +812,7 @@ MonoBehaviour:
   - Enemy
   - Water
   - Target
+  - Uninteractable
   m_RaysPerDirection: 3
   m_MaxRayDegrees: 70
   m_SphereCastRadius: 0.5
@@ -872,11 +877,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 8
+    VectorObservationSize: 12
     NumStackedVectorObservations: 4
     m_ActionSpec:
-      m_NumContinuousActions: 4
-      BranchSizes: 02000000
+      m_NumContinuousActions: 5
+      BranchSizes: 0200000002000000
     VectorActionSize: 
     VectorActionDescriptions: []
     VectorActionSpaceType: 1
@@ -927,9 +932,9 @@ MonoBehaviour:
   gizmoDividerY: 0
   winReward: 1
   hitTargetReward: 0.05
-  killedEnemyReward: 0.1
-  hitEnemyReward: 0.01
   hitAllTargetsReward: 0.5
+  hitEnemyReward: 0.01
+  killedEnemyReward: 0.1
   distanceToGoalReward: 0.1
   dieReward: -1
   existenceReward: -0.001

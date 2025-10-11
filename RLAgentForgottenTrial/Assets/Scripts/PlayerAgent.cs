@@ -51,7 +51,7 @@ public class PlayerAgent : Agent
     private Vector2 horizontal, look;
     private bool jumped;
     private double previousDistance = 1f;
-    private bool shoot;
+    private bool shot;
     private float drawStartTime;
     private readonly HashSet<int> targetsHit = new();
     private int totalTargets;
@@ -60,6 +60,10 @@ public class PlayerAgent : Agent
     {
         minStart += transform.position;
         maxStart += transform.position;
+    }
+
+    private void Start()
+    {
         trainingReferences = GetComponentInParent<TrainingReferences>();
         totalTargets = trainingReferences.GetAllTargets().Count;
     }
@@ -104,7 +108,10 @@ public class PlayerAgent : Agent
         float moveZ = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.moveZ], -1f, 1f);
         float lookX = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.lookX], -1f, 1f);
         float lookY = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.lookZ], -1f, 1f);
+        float shotPower = Mathf.Clamp(actionBuffers.ContinuousActions[(int)PlayerContinuousAction.shotPower], -1f, 1f);
+
         bool jump = actionBuffers.DiscreteActions[(int)PlayerDiscreteAction.jump] > 0;
+        bool shoot = actionBuffers.DiscreteActions[(int)PlayerDiscreteAction.shoot] > 0;
 
         if (!heuristic)
         {
@@ -112,13 +119,13 @@ public class PlayerAgent : Agent
             lookY = ConvertExponent(lookY, 3f);
         }
 
-
         Vector3 playerPosition = playerMovement.transform.position;
 
-
+        // Move and look
         playerMovement.OnMove(new Vector2(moveX, moveZ));
         playerMovement.OnLook(new Vector2(lookX, lookY));
 
+        // Jumping
         if (jump)
         {
             playerMovement.OnJump();
@@ -126,11 +133,17 @@ public class PlayerAgent : Agent
             logger.OnAction(penaltyJump);
         }
 
+        // Bow shooting
         if (shoot)
         {
-            shoot = false;
-            float drawTime = Time.fixedTime - drawStartTime;
-            float power = Math.Min(drawTime, maxDrawingTime) / maxDrawingTime;
+            float power;
+            if (!heuristic)
+                power = shotPower;
+            else
+            {
+                float drawTime = Time.fixedTime - drawStartTime;
+                power = Math.Min(drawTime, maxDrawingTime) / maxDrawingTime;
+            }
             power = ConvertSqrt(power);
             playerShooting.Shoot(power);
             AddReward(penaltyArrow);
@@ -138,16 +151,19 @@ public class PlayerAgent : Agent
             logger.OnShotFired();
         }
 
+        // Enemy proximity
         Transform nearest = GetNearestEnemy(playerPosition);
         if (nearest != null && Vector3.Distance(nearest.position, playerPosition) < dangerDistance)
             OnDetected();
 
+        // Goal proximity
         double distanceToGoal = DistanceBetween(playerMovement.transform, goal, 1f);
         float distanceReward = (float)(previousDistance - distanceToGoal) * distanceToGoalReward;
         AddReward(distanceReward);
         logger.OnAction(distanceReward);
         previousDistance = distanceToGoal;
 
+        // Lose conditions and existence penalty
         if (playerPosition.y < killY)
             Lose(dieReward);
         else if (StepCount == MaxStep - 1)
@@ -176,9 +192,10 @@ public class PlayerAgent : Agent
 
         playerMovement.MoveTo(start);
         goal.transform.position = goalStart;
-        Transform enemy = GetNearestEnemy(playerMovement.transform.position); // TODO: replace with proper enemy spawning
-        if (enemy != null)
+        List<Transform> enemies = enemyManager.GetEnemies(); // TODO: replace with proper enemy spawning
+        foreach (Transform enemy in enemies)
         {
+            enemy.gameObject.SetActive(true);
             enemy.position = enemyStart;
             enemy.GetComponent<EnemyAI>().ResetValues();
         }
@@ -195,10 +212,13 @@ public class PlayerAgent : Agent
         continuousActionsOut[(int)PlayerContinuousAction.moveX] = horizontal.x; // X axis
         continuousActionsOut[(int)PlayerContinuousAction.lookX] = look.x * heuristicLookSensitivity;
         continuousActionsOut[(int)PlayerContinuousAction.lookZ] = look.y * heuristicLookSensitivity;
+        continuousActionsOut[(int)PlayerContinuousAction.shotPower] = 0;
 
         var discreteActionsOut = actionsOut.DiscreteActions;
         discreteActionsOut[(int)PlayerDiscreteAction.jump] = jumped ? 1 : 0;
+        discreteActionsOut[(int)PlayerDiscreteAction.shoot] = shot ? 1 : 0;
         jumped = false;
+        shot = false;
     }
 
     public void Win()
@@ -294,13 +314,13 @@ public class PlayerAgent : Agent
     public void OnShootPress(InputValue value)
     {
         if (!heuristic) return;
-        shoot = false;
+        shot = false;
         drawStartTime = Time.fixedTime;
     }
     public void OnShootRelease(InputValue value)
     {
         if (!heuristic) return;
-        shoot = true;
+        shot = true;
     }
     #endregion
 

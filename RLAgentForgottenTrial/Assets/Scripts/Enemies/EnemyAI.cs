@@ -60,13 +60,13 @@ public class EnemyAI: MonoBehaviour
     public void TakeDamage(float damage)
     {
         health -= damage;
-        if (health < 0)
+        if (health <= 0)
             StateMachine?.ChangeState(new EnemyDeadState());
     }
 
     public bool IsDead()
     {
-        return health < 0;
+        return health <= 0;
     }
 
     private void OnDrawGizmosSelected()

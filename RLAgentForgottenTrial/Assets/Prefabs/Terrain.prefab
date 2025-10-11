@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5099664041374203926}
   - component: {fileID: 2476370484596042669}
   - component: {fileID: 3539498758113772699}
+  - component: {fileID: 6305537890748477533}
   m_Layer: 0
   m_Name: Terrain
   m_TagString: Ground
@@ -27,7 +28,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2934491606960114711}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -15, y: 0, z: -15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -44,26 +45,26 @@ Terrain:
   m_Enabled: 1
   serializedVersion: 6
   m_TerrainData: {fileID: 15600000, guid: 58d9378b8aaa38846b65aeda53480f24, type: 2}
-  m_TreeDistance: 5000
-  m_TreeBillboardDistance: 50
+  m_TreeDistance: 1000
+  m_TreeBillboardDistance: 100
   m_TreeCrossFadeLength: 5
   m_TreeMaximumFullLODCount: 50
   m_DetailObjectDistance: 80
-  m_DetailObjectDensity: 1
+  m_DetailObjectDensity: 0.7
   m_HeightmapPixelError: 5
   m_SplatMapDistance: 1000
   m_HeightmapMinimumLODSimplification: 0
   m_HeightmapMaximumLOD: 0
   m_ShadowCastingMode: 2
   m_DrawHeightmap: 1
-  m_DrawInstanced: 0
-  m_DrawTreesAndFoliage: 1
+  m_DrawInstanced: 1
+  m_DrawTreesAndFoliage: 0
   m_StaticShadowCaster: 0
   m_IgnoreQualitySettings: 0
   m_ReflectionProbeUsage: 1
   m_MaterialTemplate: {fileID: 2100000, guid: fc7681066c31dd143a3fbc729a6e72c5, type: 2}
   m_BakeLightProbesForTrees: 1
-  m_PreserveTreePrototypeLayers: 0
+  m_PreserveTreePrototypeLayers: 1
   m_DeringLightProbesForTrees: 1
   m_ReceiveGI: 1
   m_ScaleInLightmap: 0.85333335
@@ -124,5 +125,26 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: ad5f3691c7894ae45a26e4caebda4adf, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 0c6630e82393ba54fa1332d53a6a75cf, type: 2}
   m_BuildHeightMesh: 0
+--- !u!114 &6305537890748477533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2934491606960114711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1448045563, guid: b04c77e0938d27643b3f69f2dd39ce77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _autoRefreshTerrainAtRuntime: 1
+  _enableUnityRendererWhenDisabled: 1
+  _delayInitialize: 1
+  _onlyInitializeWithinRenderingDistance: 1
+  _renderingDistanceLimit: 5000
+  _renderTreesWithNatureRenderer: 1
+  _renderDetailsWithNatureRenderer: 1
+  _optimizePatchSize: 1
+  _format: 202200
