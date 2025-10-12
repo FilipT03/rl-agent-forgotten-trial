@@ -33,6 +33,7 @@ public class Arrow : MonoBehaviour
         // Check target
         if (other.CompareTag("Target"))
         {
+            other.GetComponentInParent<Target>().OnHit();
             GetComponentInParent<TrainingReferences>().player.HitTarget(other.GetInstanceID());
         }
         else if (other.CompareTag("Enemy"))

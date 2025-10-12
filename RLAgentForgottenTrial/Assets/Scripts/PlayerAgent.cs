@@ -77,7 +77,7 @@ public class PlayerAgent : Agent
         // Goal observations
         sensor.AddObservation(AngleBetweenHorizontal(player, goal, 0f));  // [-1,1] angle on the horizontal plane
         sensor.AddObservation(AngleBetweenVertical(player, goal, 0f));    // [-1,1] vertical angle between the horizontal plane and the vector between the player and the goal
-        sensor.AddObservation(DistanceBetween(player, goal, 0f)); // [ 0,1]
+        sensor.AddObservation(DistanceBetween(player, goal, -1f)); // [ 0,1]
 
         // Enemy observations
         Transform nearestEnemy = GetNearestEnemy(player.position);
@@ -184,17 +184,18 @@ public class PlayerAgent : Agent
         }
         else
             goalStart = GenerateRandomPosition();
-        Vector3 enemyStart = GenerateRandomPosition();
 
-        start.y = terrain.SampleHeight(start) + 0.5f;
-        goalStart.y = terrain.SampleHeight(goalStart) + 0.5f;
-        enemyStart.y = terrain.SampleHeight(enemyStart) + 0.5f;
+        start.y = terrain.SampleHeight(start) + terrain.transform.position.y + 0.5f;
+        goalStart.y = terrain.SampleHeight(goalStart) + terrain.transform.position.y + 0.5f;
+        print(start);
 
         playerMovement.MoveTo(start);
         goal.transform.position = goalStart;
         List<Transform> enemies = enemyManager.GetEnemies(); // TODO: replace with proper enemy spawning
         foreach (Transform enemy in enemies)
         {
+            Vector3 enemyStart = GenerateRandomPosition();
+            enemyStart.y = terrain.SampleHeight(enemyStart) + terrain.transform.position.y + 0.5f;
             enemy.gameObject.SetActive(true);
             enemy.position = enemyStart;
             enemy.GetComponent<EnemyAI>().ResetValues();
@@ -284,12 +285,14 @@ public class PlayerAgent : Agent
     {
         AddReward(killedEnemyReward);
         logger.OnAction(killedEnemyReward);
+        logger.OnEnemyKilled();
     }
 
     public void OnHitEnemy()
     {
         AddReward(hitEnemyReward);
         logger.OnAction(hitEnemyReward);
+        logger.OnEnemyHit();
     }
 
     #region InputActions
@@ -365,10 +368,11 @@ public class PlayerAgent : Agent
     {
         if (trainingReferences.GetAllTargets().Count == 0)
             return null;
-        return trainingReferences.GetAllTargets()
+        Target result = trainingReferences.GetAllTargets()
             .Where(t => !t.IsHit)
             .OrderBy(t => Vector3.Distance(t.transform.position, agentPos))
-            .First().transform;
+            .FirstOrDefault();
+        return result == null ? null : result.transform;
     }
 
     Vector3 GenerateRandomPosition(Func<Vector3, bool> condition = null)
@@ -382,7 +386,7 @@ public class PlayerAgent : Agent
                 Random.Range(minStart.y, maxStart.y),
                 Random.Range(minStart.z, maxStart.z));
             attempts--;
-        } while (attempts > 0 && (terrain.SampleHeight(result) <= minSpawnY || (condition != null && !condition.Invoke(result))));
+        } while (attempts > 0 && (terrain.SampleHeight(result) + terrain.transform.position.y <= minSpawnY || (condition != null && !condition.Invoke(result))));
         return result;
     }
 
