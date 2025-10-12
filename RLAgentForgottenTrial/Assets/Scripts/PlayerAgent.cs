@@ -21,10 +21,13 @@ public class PlayerAgent : Agent
     [SerializeField] private EnemyManager enemyManager;
     [SerializeField] private Renderer successIndicator;
     [SerializeField] private PlayerAgentLogger logger;
+    [SerializeField] private List<GameObject> checkpoints;
+    private int currentCheckpoint;
     private TrainingReferences trainingReferences;
 
     [Header("Options")]
     [SerializeField] private bool heuristic = false;
+    [SerializeField] private bool randomizeGoal = true, randomizeEnemies = true, randomizePlayer = true;
     [SerializeField] private float heuristicLookSensitivity = 0.0005f;
     [SerializeField] private float meaningfulDistance = 15f;
     [SerializeField] private float maxDrawingTime;
@@ -38,7 +41,7 @@ public class PlayerAgent : Agent
 
     [Header("Rewards")]
     [SerializeField] private float winReward;
-    [SerializeField] private float hitTargetReward, hitAllTargetsReward, hitEnemyReward, killedEnemyReward;
+    [SerializeField] private float checkpointReward, hitTargetReward, hitAllTargetsReward, hitEnemyReward, killedEnemyReward;
     [SerializeField] private float distanceToGoalReward = 0.1f;
 
     [Header("Penalties")]
@@ -75,9 +78,14 @@ public class PlayerAgent : Agent
         Transform player = playerMovement.transform;
 
         // Goal observations
-        sensor.AddObservation(AngleBetweenHorizontal(player, goal, 0f));  // [-1,1] angle on the horizontal plane
-        sensor.AddObservation(AngleBetweenVertical(player, goal, 0f));    // [-1,1] vertical angle between the horizontal plane and the vector between the player and the goal
-        sensor.AddObservation(DistanceBetween(player, goal, -1f)); // [ 0,1]
+        Transform currentGoal;
+        if (checkpoints.Count > 0)
+            currentGoal = checkpoints[currentCheckpoint].transform;
+        else
+            currentGoal = goal;
+        sensor.AddObservation(AngleBetweenHorizontal(player, currentGoal, 0f));  // [-1,1] angle on the horizontal plane
+        sensor.AddObservation(AngleBetweenVertical(player, currentGoal, 0f));    // [-1,1] vertical angle between the horizontal plane and the vector between the player and the goal
+        sensor.AddObservation(DistanceBetween(player, currentGoal, -1f)); // [ 0,1]
 
         // Enemy observations
         Transform nearestEnemy = GetNearestEnemy(player.position);
@@ -157,7 +165,13 @@ public class PlayerAgent : Agent
             OnDetected();
 
         // Goal proximity
-        double distanceToGoal = DistanceBetween(playerMovement.transform, goal, 1f);
+        Transform currentGoal;
+        if (checkpoints.Count > 0)
+            currentGoal = checkpoints[currentCheckpoint].transform;
+        else
+            currentGoal = goal;
+
+        double distanceToGoal = DistanceBetween(playerMovement.transform, currentGoal, 1f);
         float distanceReward = (float)(previousDistance - distanceToGoal) * distanceToGoalReward;
         AddReward(distanceReward);
         logger.OnAction(distanceReward);
@@ -185,25 +199,35 @@ public class PlayerAgent : Agent
         else
             goalStart = GenerateRandomPosition();
 
-        start.y = terrain.SampleHeight(start) + terrain.transform.position.y + 0.5f;
-        goalStart.y = terrain.SampleHeight(goalStart) + terrain.transform.position.y + 0.5f;
-        print(start);
+        if (randomizeGoal)
+        {
+            goalStart.y = terrain.SampleHeight(goalStart) + terrain.transform.position.y + 0.5f;
+            goal.transform.position = goalStart;
+        }
 
-        playerMovement.MoveTo(start);
-        goal.transform.position = goalStart;
+        if (randomizePlayer)
+        {
+            start.y = terrain.SampleHeight(start) + terrain.transform.position.y + 0.5f;
+            playerMovement.MoveTo(start);
+        }
+
         List<Transform> enemies = enemyManager.GetEnemies(); // TODO: replace with proper enemy spawning
         foreach (Transform enemy in enemies)
         {
-            Vector3 enemyStart = GenerateRandomPosition();
-            enemyStart.y = terrain.SampleHeight(enemyStart) + terrain.transform.position.y + 0.5f;
+            if (randomizeEnemies)
+            {
+                Vector3 enemyStart = GenerateRandomPosition();
+                enemyStart.y = terrain.SampleHeight(enemyStart) + terrain.transform.position.y + 0.5f;
+                enemy.position = enemyStart;
+            }
             enemy.gameObject.SetActive(true);
-            enemy.position = enemyStart;
             enemy.GetComponent<EnemyAI>().ResetValues();
         }
 
         trainingReferences.GetAllArrows().ForEach(Destroy);
         targetsHit.Clear();
         trainingReferences.GetAllTargets().ForEach(target => target.ResetHitState());
+        currentCheckpoint = 0;
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -238,6 +262,15 @@ public class PlayerAgent : Agent
         logger.OnAction(reward);
         logger.OnEpisodeEnd(false);
         EndEpisode();
+    }
+
+    public void Checkpoint(int instanceID)
+    {
+        if (checkpoints[currentCheckpoint].GetInstanceID() != instanceID)
+            return;
+        currentCheckpoint++;
+        AddReward(checkpointReward);
+        logger.OnAction(checkpointReward);
     }
 
     public void OnDetected()

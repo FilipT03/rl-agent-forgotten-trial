@@ -25,6 +25,8 @@ public class Player : MonoBehaviour
 
     public void Win() => agent.Win();
 
+    public void Checkpoint(int instanceID) => agent.Checkpoint(instanceID);
+
     public void TouchedWater() => agent.OnTouchedWater();
 
     public void KilledEnemy() => agent.OnKilledEnemy();

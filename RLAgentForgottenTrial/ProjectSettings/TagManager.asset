@@ -11,6 +11,7 @@ TagManager:
   - Projectile
   - Target
   - Uninteractable
+  - Checkpoint
   layers:
   - Default
   - TransparentFX
