@@ -4,9 +4,6 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <TODO>
-///   Fix wall sliding (snap model to the wall?)
-/// </TODO>
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -43,7 +40,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked; // TODO: if not training
+        Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 

@@ -804,12 +804,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Model
       value: 
-      objectReference: {fileID: 5022602860645237092, guid: b7ec540f677b72845b37618d388b7df7,
-        type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 836303905274127797, guid: df15d30f7da5eaa4094530aaeba5b483,
         type: 3}
       propertyPath: m_BehaviorType
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4100855401128146154, guid: df15d30f7da5eaa4094530aaeba5b483,
         type: 3}

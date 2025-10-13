@@ -374,7 +374,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: cfd6a788e03f9164db524f20e5b54680, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -918,7 +918,11 @@ MonoBehaviour:
   enemyManager: {fileID: 0}
   successIndicator: {fileID: 0}
   logger: {fileID: 8889300206061105125}
+  checkpoints: []
   heuristic: 0
+  randomizeGoal: 1
+  randomizeEnemies: 1
+  randomizePlayer: 1
   heuristicLookSensitivity: 0.02
   meaningfulDistance: 15
   maxDrawingTime: 2
@@ -931,10 +935,11 @@ MonoBehaviour:
   dividerAngle: 90
   gizmoDividerY: 0
   winReward: 1
+  checkpointReward: 0
   hitTargetReward: 0.05
   hitAllTargetsReward: 0.5
-  hitEnemyReward: 0.01
-  killedEnemyReward: 0.1
+  hitEnemyReward: 0.02
+  killedEnemyReward: 0.2
   distanceToGoalReward: 0.1
   dieReward: -1
   existenceReward: -0.001

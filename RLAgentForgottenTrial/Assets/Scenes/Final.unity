@@ -3497,11 +3497,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4620943710242343411, guid: df15d30f7da5eaa4094530aaeba5b483,
         type: 3}
-      propertyPath: hitEnemyReward
-      value: 0.02
-      objectReference: {fileID: 0}
-    - target: {fileID: 4620943710242343411, guid: df15d30f7da5eaa4094530aaeba5b483,
-        type: 3}
       propertyPath: existenceReward
       value: -0.0005
       objectReference: {fileID: 0}
@@ -3534,11 +3529,6 @@ PrefabInstance:
         type: 3}
       propertyPath: horizontalDivider
       value: 3.9
-      objectReference: {fileID: 0}
-    - target: {fileID: 4620943710242343411, guid: df15d30f7da5eaa4094530aaeba5b483,
-        type: 3}
-      propertyPath: killedEnemyReward
-      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 4620943710242343411, guid: df15d30f7da5eaa4094530aaeba5b483,
         type: 3}
@@ -3575,11 +3565,6 @@ PrefabInstance:
       propertyPath: 'checkpoints.Array.data[3]'
       value: 
       objectReference: {fileID: 7194403926000817689}
-    - target: {fileID: 5580860355796945498, guid: df15d30f7da5eaa4094530aaeba5b483,
-        type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: cfd6a788e03f9164db524f20e5b54680, type: 2}
     - target: {fileID: 6438788872843715969, guid: df15d30f7da5eaa4094530aaeba5b483,
         type: 3}
       propertyPath: m_LocalPosition.x

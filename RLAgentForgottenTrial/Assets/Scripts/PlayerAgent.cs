@@ -211,7 +211,7 @@ public class PlayerAgent : Agent
             playerMovement.MoveTo(start);
         }
 
-        List<Transform> enemies = enemyManager.GetEnemies(); // TODO: replace with proper enemy spawning
+        List<Transform> enemies = enemyManager.GetEnemies();
         foreach (Transform enemy in enemies)
         {
             if (randomizeEnemies)
