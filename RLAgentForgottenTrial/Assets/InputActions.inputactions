@@ -25,19 +25,28 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Fire",
+                    "name": "ShootPress",
                     "type": "Button",
                     "id": "7e60b23e-4a6f-487f-8e9c-a894f8827474",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "Press",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ShootRelease",
+                    "type": "Button",
+                    "id": "4df7ce3c-3135-4425-940a-100e2c0fb9b4",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "Press(behavior=1)",
                     "initialStateCheck": false
                 },
                 {
                     "name": "Jump",
                     "type": "Button",
                     "id": "71409a20-bc5e-4a11-9f5d-65c3e760b7e9",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -252,7 +261,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
-                    "action": "Fire",
+                    "action": "ShootPress",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -263,7 +272,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Fire",
+                    "action": "ShootPress",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -274,7 +283,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Touch",
-                    "action": "Fire",
+                    "action": "ShootPress",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -285,7 +294,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "Joystick",
-                    "action": "Fire",
+                    "action": "ShootPress",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -296,7 +305,62 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "XR",
-                    "action": "Fire",
+                    "action": "ShootPress",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ee39a3cb-ee76-4356-8be5-16500f8f25af",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "ShootRelease",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a8de093a-102b-45eb-8629-6faafe488ee4",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "ShootRelease",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "42b1ba88-6008-4865-9928-7284cac40f64",
+                    "path": "<Touchscreen>/primaryTouch/tap",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Touch",
+                    "action": "ShootRelease",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ff0661e1-1fd7-4fc0-8fd5-d78da63b459b",
+                    "path": "<Joystick>/trigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Joystick",
+                    "action": "ShootRelease",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "701ed0f2-361f-4db1-91be-af52984d468c",
+                    "path": "<XRController>/{PrimaryAction}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "XR",
+                    "action": "ShootRelease",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

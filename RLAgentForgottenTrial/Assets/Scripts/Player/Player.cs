@@ -21,18 +21,17 @@ public class Player : MonoBehaviour
         agent = GetComponentInParent<PlayerAgent>();
     }
 
-    public void TakeDamage()
-    {
-        agent.OnTakeDamage();
-    }
+    public void TakeDamage() => agent.OnTakeDamage();
 
-    public void Win()
-    {
-        agent.OnWin();
-    }
+    public void Win() => agent.Win();
 
-    public void TouchedWater()
-    {
-        agent.OnTouchedWater();
-    }
+    public void Checkpoint(int instanceID) => agent.Checkpoint(instanceID);
+
+    public void TouchedWater() => agent.OnTouchedWater();
+
+    public void KilledEnemy() => agent.OnKilledEnemy();
+
+    public void HitEnemy() => agent.OnHitEnemy();
+
+    public void HitTarget(int targetID) => agent.OnHitTarget(targetID);
 }

@@ -48,20 +48,25 @@ public class EnemyAI: MonoBehaviour
 
     private void Update()
     {
-        StateMachine.UpdateState();
+        StateMachine?.UpdateState();
     }
 
     public void ResetValues()
     {
         health = startHealth;
-        StateMachine.ChangeState(new EnemyPatrolState());
+        StateMachine?.ChangeState(new EnemyPatrolState());
     }
 
     public void TakeDamage(float damage)
     {
         health -= damage;
-        if (health < 0)
-            StateMachine.ChangeState(new EnemyDeadState());
+        if (health <= 0)
+            StateMachine?.ChangeState(new EnemyDeadState());
+    }
+
+    public bool IsDead()
+    {
+        return health <= 0;
     }
 
     private void OnDrawGizmosSelected()

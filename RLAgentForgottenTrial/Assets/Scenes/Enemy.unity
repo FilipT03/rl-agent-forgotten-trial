@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 20d4f77b9022eab48b4d94599ed4bf82, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -310,12 +310,6 @@ MeshRenderer:
 --- !u!4 &1092058784 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7389831981076032679, guid: 5659c0d02adc3294996f53e653a3128d,
-    type: 3}
-  m_PrefabInstance: {fileID: 6026390946069094446}
-  m_PrefabAsset: {fileID: 0}
---- !u!218 &1092058786 stripped
-Terrain:
-  m_CorrespondingSourceObject: {fileID: 5099664041374203926, guid: 5659c0d02adc3294996f53e653a3128d,
     type: 3}
   m_PrefabInstance: {fileID: 6026390946069094446}
   m_PrefabAsset: {fileID: 0}
@@ -640,6 +634,12 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 2039666618}
   m_PrefabAsset: {fileID: 0}
+--- !u!218 &2039666622 stripped
+Terrain:
+  m_CorrespondingSourceObject: {fileID: 6973606572791608486, guid: c54d647e8ad669c46946df840561f9c4,
+    type: 3}
+  m_PrefabInstance: {fileID: 2039666618}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1657867663036903581 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4254168902669704700, guid: ead952ded0f2b5f4cac297d4a662a666,
@@ -722,6 +722,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8677601283061492709}
     m_Modifications:
+    - target: {fileID: 789348110246744138, guid: df15d30f7da5eaa4094530aaeba5b483,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 836303905274127797, guid: df15d30f7da5eaa4094530aaeba5b483,
         type: 3}
       propertyPath: m_Model
@@ -729,8 +734,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 836303905274127797, guid: df15d30f7da5eaa4094530aaeba5b483,
         type: 3}
+      propertyPath: m_BehaviorType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 836303905274127797, guid: df15d30f7da5eaa4094530aaeba5b483,
+        type: 3}
       propertyPath: m_BrainParameters.NumStackedVectorObservations
       value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3768881941159244971, guid: df15d30f7da5eaa4094530aaeba5b483,
+        type: 3}
+      propertyPath: m_TagString
+      value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 4620943710242343411, guid: df15d30f7da5eaa4094530aaeba5b483,
         type: 3}
@@ -741,7 +756,12 @@ PrefabInstance:
         type: 3}
       propertyPath: terrain
       value: 
-      objectReference: {fileID: 1092058786}
+      objectReference: {fileID: 2039666622}
+    - target: {fileID: 4620943710242343411, guid: df15d30f7da5eaa4094530aaeba5b483,
+        type: 3}
+      propertyPath: heuristic
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4620943710242343411, guid: df15d30f7da5eaa4094530aaeba5b483,
         type: 3}
       propertyPath: enemyManager
@@ -1115,7 +1135,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f07bfd40bb133564fa8efc02b605da7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemies: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
