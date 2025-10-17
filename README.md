@@ -46,6 +46,15 @@ Main features:
 - Reward-based learning where agents learn from rewards to optimize future decisions.
 - Logging and tracking of agent behavior and performance during training.
 
+<br/>
+
+## Built With
+
+This project is built using the following technologies:
+
+[![Unity][Unity-img]][Unity-url]  
+[![MLAgents][MLAgents-img]][MLAgents-url]
+
 # Getting Started
 
 Follow these steps to set up and run the project locally.
@@ -118,3 +127,8 @@ The following 3D models were used in this project:
 [license-url]: https://github.com/FilipT03/rl-agent-forgotten-trial/blob/main/LICENSE
 [last-commit-shield]: https://img.shields.io/github/last-commit/FilipT03/rl-agent-forgotten-trial?style=for-the-badge
 [last-commit-url]: https://github.com/FilipT03/rl-agent-forgotten-trial/commits/main
+
+[Unity-img]: https://img.shields.io/badge/Unity-000000?logo=unity&logoColor=white  
+[Unity-url]: https://unity.com/  
+[MLAgents-img]: https://img.shields.io/badge/ML--Agents-00599C?logo=unity&logoColor=white  
+[MLAgents-url]: https://github.com/Unity-Technologies/ml-agents  
