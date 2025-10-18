@@ -1,5 +1,6 @@
 using Unity.MLAgents;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerAgentLogger : MonoBehaviour
 {
@@ -16,10 +17,12 @@ public class PlayerAgentLogger : MonoBehaviour
     private int stepCount;
 
     private StatsRecorder stats;
+    private string scenePrefix;
 
     private void Awake()
     {
         stats = Academy.Instance.StatsRecorder;
+        scenePrefix = SceneManager.GetActiveScene().name;
     }
 
     public void OnEpisodeBegin()
@@ -63,17 +66,19 @@ public class PlayerAgentLogger : MonoBehaviour
         float precision = totalShotsFired > 0 ? (float)totalSuccessfulHits / totalShotsFired : 0f;
         float successRate = success ? 1f : 0f;
 
-        stats.Add("Main/Average Cumulative Reward", cumulativeReward);
-        stats.Add("Main/Episode Length", stepCount);
-        stats.Add("Main/Success Rate", successRate);
+        string prefix = $"{scenePrefix}/";
 
-        stats.Add("Task/Precision", precision);
-        stats.Add("Task/Shots Fired", totalShotsFired);
-        stats.Add("Task/Targets Hit", totalTargetHits);
-        stats.Add("Task/Target Completions", hitAllTargets ? 1f : 0f);
-        stats.Add("Task/Times Detected", totalDetections);
-        stats.Add("Task/Enemies Killed", totalKills);
+        stats.Add($"{prefix}Main/Average Cumulative Reward", cumulativeReward);
+        stats.Add($"{prefix}Main/Episode Length", stepCount);
+        stats.Add($"{prefix}Main/Success Rate", successRate);
 
-        stats.Add("Debug/Episode Count", episodeCount);
+        stats.Add($"{prefix}Task/Precision", precision);
+        stats.Add($"{prefix}Task/Shots Fired", totalShotsFired);
+        stats.Add($"{prefix}Task/Targets Hit", totalTargetHits);
+        stats.Add($"{prefix}Task/Target Completions", hitAllTargets ? 1f : 0f);
+        stats.Add($"{prefix}Task/Times Detected", totalDetections);
+        stats.Add($"{prefix}Task/Enemies Killed", totalKills);
+
+        stats.Add($"{prefix}Debug/Episode Count", episodeCount);
     }
 }
